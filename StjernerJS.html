@@ -20,8 +20,6 @@
   <canvas></canvas>
   <script>
     /**
-     *
-     * @author oldhandmixer
      * Vector class to help making the particles simpler
      *
      */
@@ -89,8 +87,139 @@
       }
     }
 
+    /**
+     * Explosion particles
+     *
+     */
+    class PParticle {
 
-    params = [
+      //PVector loc;
+      //PVector vel;
+      //PVector acc;
+      //private static final int s = 30;
+      //private static final int w = 5;
+
+
+      /**
+       *
+       * @param loc start location
+       * @param shape what will be rendered
+       * @param dbf particle radius tick scale factor
+       */
+      constructor(x, y, shape, dbf) {
+        this.shape = shape;
+        this.dbf = dbf;
+        this.tick = 0.0;
+        this.radius = 5 + 60 * Math.random();
+        this.tick = Math.PI * 2 * Math.random();
+        this.rotate = 360 * Math.random();
+        this.loc = new PVector(x, y);
+        var angle = 2 * Math.PI * Math.random();
+        this.vel = new PVector(Math.sin(angle), Math.cos(angle));
+        this.vel.mult(7 * Math.random());
+        this.acc = new PVector(0, 0.02);
+      }
+
+      update() {
+        this.loc.add(vel);
+        this.radius *= Stjerner.pbf; // @todo Stjerner.pbf
+        this.vel.add(acc);
+      }
+
+      // returns false if particle is outside edges
+      checkEdges() {
+        if ((this.loc.x > WIDTH) || (this.loc.x < 0) || (this.loc.y > HEIGHT) || (this.loc.y < 0)) {
+          return false;
+        }
+        return true;
+      }
+
+      // renders the particle in the selected shape
+      display(gc) {
+
+        switch (this.shape) {
+          case 0: // circle
+            gc.fillStyle = "#FFFF00";//gc.setFill(Color.YELLOW);
+            gc.beginPath();
+            gc.arc(this.loc.x - this.radius / 2, this.loc.y - this.radius / 2, this.radius, 0, Math.PI * 2, false);
+            gc.fill();
+            break;
+          case 1:// cute aliens
+            var S = 5; // sizs of pixel!!
+            gc.save();
+            gc.translate(this.loc.x, this.loc.y);
+            //            gc.rotate(rotate);
+            gc.scale(this.radius / 12, this.radius / 12);
+            gc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+            gc.fillRect(1 * S, 0, 8 * S, 2 * S);
+            gc.fillRect(0, 1 * S, 10 * S, 9 * S);
+            var xx = 3 * Math.sin(this.tick * 2) * S;
+            gc.fillRect(xx, 8 * S, 4 * S, 5 * S);
+            gc.fillRect(xx + 6 * S, 8 * S, 4 * S, 5 * S);
+            gc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+            gc.fillRect(2 * S, 2 * S, 2 * S, 4 * S);
+            gc.fillRect(6 * S, 2 * S, 2 * S, 4 * S);
+            gc.fillStyle = "#000000"; //gc.setFill(Color.BLACK);
+            gc.fillRect(2 * S, 4 * S, 1 * S, 2 * S);
+            gc.fillRect(6 * S, 4 * S, 1 * S, 2 * S);
+            gc.restore();
+            this.tick += 0.05;
+            break;
+          case 2:// danish flags
+            gc.save();
+            gc.translate(this.loc.x, this.loc.y);
+            gc.rotate(this.rotate);
+            gc.scale(this.radius / 20, this.radius / 20);
+            gc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+            gc.fillRect(-20.0, -20.0, 60.0, 40.0);
+            gc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+            gc.fillRect(-20.0, -20.0, 17.0, 17.0);
+            gc.fillRect(-20.0, 3.0, 17.0, 17.0);
+            gc.fillRect(3.0, -20.0, 37.0, 17.0);
+            gc.fillRect(3.0, 3.0, 37.0, 17.0);
+            gc.restore();
+            break;
+          case 3:// hearts
+            gc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+            gc.save();
+            gc.translate(this.loc.x, this.loc.y);
+            gc.rotate(this.rotate);
+
+            gc.scale(this.radius / 20, this.radius / 20);
+            gc.beginPath();
+            for (var i = 0; i < PParticleheart.length; i++) {
+              gc.lineTo(PParticleheart[i].x, PParticleheart[i].y);
+            }
+            //            console.log("heart:" + this.heart.length);
+            gc.fill();
+            gc.restore();
+            break;
+          case 4:// stars
+            gc.fillStyle = "#8080FF"; //gc.setFill(Color.AQUAMARINE);
+            var x = this.loc.x + (this.radius * Math.sin(0));
+            var y = this.loc.y + (this.radius * Math.cos(0));
+            var a = 8 * Math.PI / 7;
+            gc.beginPath();
+            gc.moveTo(x, y);
+            for (i = 1.0; i < 7.0; i += 1.0) {
+              var x = this.loc.x + (this.radius * Math.sin(a * i));
+              var y = this.loc.y + (this.radius * Math.cos(a * i));
+              gc.lineTo(x, y);
+            }
+            gc.closePath();
+            gc.fill();
+            break;
+          case 5://Text
+            gc.fillStyle = "#00FF00"; //gc.setFill(Color.GREEN);
+            gc.fillText("Hello", this.loc.x, this.loc.y);
+            break;
+        }
+      }
+    }
+
+
+
+    var params = [
       "Number of particles",
       "(a1) X path center",
       "(b1) Y path center",
@@ -109,17 +238,37 @@
       "Shape",
       "Exit!"];
 
+    var PParticleheart = [
+      { "x": -0.05058692522030292, "y": -16.771209558736526 },
+      { "x": -1.4051242343538144, "y": -14.905512000289317 },
+      { "x": -5.547247550119341, "y": -11.601373022577313 },
+      { "x": -11.57766389758021, "y": -7.096828612728075 },
+      { "x": -16.62438321085757, "y": -1.209467186392652 },
+      { "x": -17.865067848647673, "y": 5.61250041799203 },
+      { "x": -14.5738696553844, "y": 11.362753405942646 },
+      { "x": -8.651703818918799, "y": 13.447524871640068 },
+      { "x": -3.2403590518811027, "y": 11.16190983597264 },
+      { "x": -0.4645516966044104, "y": 7.020845113921432 },
+      { "x": 0, "y": 5 },
+      { "x": 0.4645516966044076, "y": 7.020845113921421 },
+      { "x": 3.240359051881094, "y": 11.16190983597263 },
+      { "x": 8.651703818918785, "y": 13.44752487164007 },
+      { "x": 14.573869655384389, "y": 11.362753405942655 },
+      { "x": 17.865067848647673, "y": 5.612500417992047 },
+      { "x": 16.624383210857584, "y": -1.2094671863926374 },
+      { "x": 11.577663897580226, "y": -7.09682861272806 },
+      { "x": 5.547247550119358, "y": -11.601373022577299 },
+      { "x": 1.4051242343538222, "y": -14.905512000289313 },
+      { "x": 0.050586925220303884, "y": -16.771209558736526 }];
+
+    sss = new PParticle(500, 500, 3, 1);
     function initStjerner() {
+
     }
 
     function loop() {
       gc.clearRect(0, 0, screen.width, screen.height);
-      gc.strokeStyle = "rgb(255,255,255)";
-      gc.lineWidth = 0.53;
-      gc.strokeRect(100, 100, 2000, 1500);
-
-      gc.fillStyle = "rgb(255,255,255)";
-      gc.fillRect(200, 200, 100, 100);
+      sss.display(gc);
     }
 
     function mouseDown(e) {
