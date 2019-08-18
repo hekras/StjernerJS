@@ -12,7 +12,6 @@
 
     canvas {
       background: black;
-      cursor: none;
     }
   </style>
 </head>
@@ -20,198 +19,311 @@
 <body>
   <canvas></canvas>
   <script>
+    /**
+     * Vector class to help making the particles simpler
+     *
+     */
+    class PVector {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+      }
 
-    var levels = [
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      add(v) {
+        this.x += v.x;
+        this.y += v.y;
+      }
 
-      [0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
-      [1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1],
-      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
-      [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
-      [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-      [0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0],
+      sub(v) {
+        this.x -= v.x;
+        this.y -= v.y;
+      }
 
-    ];
+      static random2D() {
+        angle = 2 * Math.PI * Math.random();
+        return (new PVector(Math.cos(angle), Math.sin(angle)));
+      }
 
-    /* Ideer til  spillet
-        - en stor bane hvor man flyver rundt i et rumskib og skyder aliens
-        - aliens der er lavet som 'cute invaders' og som kan være nemme eller svære at skyde ned
-        - motoren kan skiftes ud så styringen af rumskibet bliver anderledes
-        - endelig version programmeres i C# eller java - javascript+html er ikke helt så sikkert som jeg vil have det. Enhver kan læse koden 
-        - måske...
-             lave spilengine og editor komplet og lægge det ud som opensource
-             lave en lille demo af muligheder for at vise mine skills og lad det være det
+      mult(n) {
+        this.x *= n;
+        this.y *= n;
+      }
 
-        - about
-             Done by Henryk Krasuski
+      div(n) {
+        this.x /= n;
+        this.y /= n;
+      }
 
-        - license
-        
-    */
+      mag() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+      }
 
-    var invaders = [];  // spawned invaders
-    var bullits = [];   // spawned bullits from the good guy
-    //    var arr = [];
-    var mx = 0xa0, my = 100;
-    var lenex = 320 / 2 - 9, leney = 200;
-    //    var bada = 0;
+      dist(p) {
+        dx = this.x - p.x;
+        dy = this.y - p.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
 
-    // the good guy metrics
-    var acc = 0.01;    // acelleration when W is pressed
-    var dacc = 0.15;  // decelleration when W is not pressed
-    var velo = 0;     // velocity
-    var vx = 0;       // unity vector to crosshair
-    var vy = 0;
-    var vvx = 0;       // unity vector to crosshair
-    var vvy = 0;
+      normalize() {
+        m = mag();
+        if (m != 0) {
+          div(m);
+        }
+      }
 
-    function initInvaders(level) {
-      var p1 = level * 8;
-      var p2 = 0;
-      invaders = [];
-      for (var i = 0; i < 8; i++) {
-        var m = levels[i + p1];
-        var y = 2 + i * 18;
-        for (var j = 0; j < m.length; j++) {
-          var x = 4 + j * 18;
-          if (m[j] > 0) {
-            invaders[p2++] = {
-              x: x,
-              y: y,
-              f: "rgb(255,0,0)",
-              dead: false
-            };
-          }
+      limit(max) {
+        if (mag() > max) {
+          normalize();
+          mult(max);
         }
       }
     }
 
+    /**
+     * Explosion particles
+     *
+     */
+    class PParticle {
+
+      //PVector loc;
+      //PVector vel;
+      //PVector acc;
+      //private static final int s = 30;
+      //private static final int w = 5;
+
+
+      /**
+       *
+       * @param loc start location
+       * @param shape what will be rendered
+       * @param dbf particle radius tick scale factor
+       */
+      constructor(x, y, shape, dbf) {
+        this.shape = shape;
+        this.dbf = dbf;
+        this.tick = 0.0;
+        this.radius = 5 + 60 * Math.random();
+        this.tick = Math.PI * 2 * Math.random();
+        this.rotate = 360 * Math.random();
+        this.loc = new PVector(x, y);
+        var angle = 2 * Math.PI * Math.random();
+        this.vel = new PVector(Math.sin(angle), Math.cos(angle));
+        this.vel.mult(7 * Math.random());
+        this.acc = new PVector(0, 0.02);
+      }
+
+      update() {
+        this.loc.add(this.vel);
+        this.radius *= pbf; // @todo Stjerner.pbf
+        this.vel.add(this.acc);
+      }
+
+      // returns false if particle is outside edges
+      checkEdges() {
+        if ((this.loc.x > WIDTH) || (this.loc.x < 0) || (this.loc.y > HEIGHT) || (this.loc.y < 0)) {
+          return false;
+        }
+        return true;
+      }
+
+      // renders the particle in the selected shape
+      display(gc) {
+
+        switch (this.shape) {
+          case 0: // circle
+            gc.fillStyle = "#FFFF00";//gc.setFill(Color.YELLOW);
+            gc.beginPath();
+            gc.arc(this.loc.x - this.radius / 2, this.loc.y - this.radius / 2, this.radius, 0, Math.PI * 2, false);
+            gc.fill();
+            break;
+          case 1:// cute aliens
+            var S = 5; // sizs of pixel!!
+            gc.save();
+            gc.translate(this.loc.x, this.loc.y);
+            //            gc.rotate(rotate);
+            gc.scale(this.radius / 12, this.radius / 12);
+            gc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+            gc.fillRect(1 * S, 0, 8 * S, 2 * S);
+            gc.fillRect(0, 1 * S, 10 * S, 9 * S);
+            var xx = 3 * Math.sin(this.tick * 2) * S;
+            gc.fillRect(xx, 8 * S, 4 * S, 5 * S);
+            gc.fillRect(xx + 6 * S, 8 * S, 4 * S, 5 * S);
+            gc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+            gc.fillRect(2 * S, 2 * S, 2 * S, 4 * S);
+            gc.fillRect(6 * S, 2 * S, 2 * S, 4 * S);
+            gc.fillStyle = "#000000"; //gc.setFill(Color.BLACK);
+            gc.fillRect(2 * S, 4 * S, 1 * S, 2 * S);
+            gc.fillRect(6 * S, 4 * S, 1 * S, 2 * S);
+            gc.restore();
+            this.tick += 0.05;
+            break;
+          case 2:// danish flags
+            gc.save();
+            gc.translate(this.loc.x, this.loc.y);
+            gc.rotate(this.rotate);
+            gc.scale(this.radius / 20, this.radius / 20);
+            gc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+            gc.fillRect(-20.0, -20.0, 60.0, 40.0);
+            gc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+            gc.fillRect(-20.0, -20.0, 17.0, 17.0);
+            gc.fillRect(-20.0, 3.0, 17.0, 17.0);
+            gc.fillRect(3.0, -20.0, 37.0, 17.0);
+            gc.fillRect(3.0, 3.0, 37.0, 17.0);
+            gc.restore();
+            break;
+          case 3:// hearts
+            gc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+            gc.save();
+            gc.translate(this.loc.x, this.loc.y);
+            gc.rotate(this.rotate);
+
+            gc.scale(this.radius / 20, this.radius / 20);
+            gc.beginPath();
+            for (var i = 0; i < PParticleheart.length; i++) {
+              gc.lineTo(PParticleheart[i].x, PParticleheart[i].y);
+            }
+            //            console.log("heart:" + this.heart.length);
+            gc.fill();
+            gc.restore();
+            break;
+          case 4:// stars
+            gc.fillStyle = "#8080FF"; //gc.setFill(Color.AQUAMARINE);
+            var x = this.loc.x + (this.radius * Math.sin(0));
+            var y = this.loc.y + (this.radius * Math.cos(0));
+            var a = 8 * Math.PI / 7;
+            gc.beginPath();
+            gc.moveTo(x, y);
+            for (i = 1.0; i < 7.0; i += 1.0) {
+              var x = this.loc.x + (this.radius * Math.sin(a * i));
+              var y = this.loc.y + (this.radius * Math.cos(a * i));
+              gc.lineTo(x, y);
+            }
+            gc.closePath();
+            gc.fill();
+            break;
+          case 5://Text
+            gc.fillStyle = "#00FF00"; //gc.setFill(Color.GREEN);
+            gc.fillText("Hello", this.loc.x, this.loc.y);
+            break;
+        }
+      }
+    }
+
+
+    var PParticleheart = [
+      { "x": -0.05058692522030292, "y": -16.771209558736526 },
+      { "x": -1.4051242343538144, "y": -14.905512000289317 },
+      { "x": -5.547247550119341, "y": -11.601373022577313 },
+      { "x": -11.57766389758021, "y": -7.096828612728075 },
+      { "x": -16.62438321085757, "y": -1.209467186392652 },
+      { "x": -17.865067848647673, "y": 5.61250041799203 },
+      { "x": -14.5738696553844, "y": 11.362753405942646 },
+      { "x": -8.651703818918799, "y": 13.447524871640068 },
+      { "x": -3.2403590518811027, "y": 11.16190983597264 },
+      { "x": -0.4645516966044104, "y": 7.020845113921432 },
+      { "x": 0, "y": 5 },
+      { "x": 0.4645516966044076, "y": 7.020845113921421 },
+      { "x": 3.240359051881094, "y": 11.16190983597263 },
+      { "x": 8.651703818918785, "y": 13.44752487164007 },
+      { "x": 14.573869655384389, "y": 11.362753405942655 },
+      { "x": 17.865067848647673, "y": 5.612500417992047 },
+      { "x": 16.624383210857584, "y": -1.2094671863926374 },
+      { "x": 11.577663897580226, "y": -7.09682861272806 },
+      { "x": 5.547247550119358, "y": -11.601373022577299 },
+      { "x": 1.4051242343538222, "y": -14.905512000289313 },
+      { "x": 0.050586925220303884, "y": -16.771209558736526 }];
+
+    var params = [
+      "Number of particles",
+      "(a1) X path center",
+      "(b1) Y path center",
+      "(a2) X path radius",
+      "(b2) Y path radius",
+      "(dt1) path rotation velocity",
+      "(du1) path rotation phase",
+      "(dt2) path rotation velocity",
+      "(pss) Particle start random",
+      "(psc) Particle start const",
+      "(pbf) Partice burnout factor",
+      "(psa) Partice start angle",
+      "(psdo1) Partice start angle tick 1",
+      "(psdo2) Partice start angle tick 2",
+      "(psv) Particle start velocity",
+      "Shape",
+      "Exit!"];
+
+    var WIDTH, HEIGHT;
+    var numberOfParticles = 20;
+    var nnumberOfParticles = 100;
+    // path params
+    var a1, a2, t1 = 0, dt1;
+    var na1 = 500.0, na2 = 500.0, ndt1 = 530.0;
+    var b1, b2, u1 = 0, du1;
+    var nb1 = 500.0, nb2 = 500.0, ndu1 = 500.0;
+    var t2 = 0, dt2, ndt2 = 500.0;
+    // particle velocity vector params
+    var pss, npss = 200.0;
+    var psc, npsc = 100;
+    var psa, npsa = 10;
+    var pso = 0.0;
+    var psdo1 = 0.0, npsdo1 = 0.0;
+    var psdo2, npsdo2 = 200.0;
+    var pbf, npbf = 50;
+    var psv, npsv = 10;
+    var shape;
+    var nshape = 0;
+
+    var boom = []; // all particles
+
+
+    function updateTrigeometries() {
+      numberOfParticles = Math.floor(nnumberOfParticles * 10);
+      a1 = WIDTH * 0.5 + (WIDTH * 0.5 * na1 / 1000 - WIDTH * 0.25);
+      b1 = HEIGHT * 0.5 + (HEIGHT * 0.5 * nb1 / 1000 - HEIGHT * 0.25);
+      a2 = WIDTH * 0.8 * na2 / 1000.0;
+      b2 = HEIGHT * 0.8 * nb2 / 1000.0;
+      dt1 = ndt1 / 2000.0 - 0.25;
+      du1 = ndu1 / 2000.0 - 0.25;
+      dt2 = ndt2 / 2000.0 - 0.25;
+      pss = npss / 5.0;
+      psc = npsc / 5.0;
+      psa = Math.PI * npsa / 500.0;
+      psdo1 = npsdo1 / 10000.0;
+      psdo2 = npsdo2 / 10000.0;
+      psv = npsv / 50.0;
+      pbf = 1.0 - npbf / 10000.0;
+    }
+
+    function initStjerner() {
+      WIDTH = canvas.width = screen.width;
+      HEIGHT = canvas.height = screen.height;
+
+      updateTrigeometries();
+
+      for (var ii = 0; ii < numberOfParticles; ii++) {
+        boom[ii] = new PParticle(WIDTH / 2, HEIGHT / 2, 4, pbf);
+      }
+
+    }
+
     function loop() {
-      c.clearRect(0, 0, 320, 240);
-      // render the bad guys
-      for (var j = 0; j < invaders.length; j++) {
-        var founj = -1;
-        var founi = -1;
-        for (var i = 0; (i < bullits.length) && (founi < 0); i++) {
-          if ((bullits[i].y < invaders[j].y + 12) &&
-            (bullits[i].x >= invaders[j].x) &&
-            (bullits[i].y >= invaders[j].y) &&
-            (bullits[i].x <= invaders[j].x + 10)) {
-            founj = j;
-            founi = i;
-          }
-        }
-        if (founi > -1) {
-          invaders.splice(founj, 1);
-          bullits.splice(founi, 1);
-        }
-        else {
-          c.fillStyle = invaders[j].f;
-          c.fillRect(invaders[j].x + 1, invaders[j].y, 8, 1);
-          c.fillRect(invaders[j].x, invaders[j].y + 1, 10, 9);
-          var xx = invaders[j].x + 3 * Math.sin(tick);
-          c.fillRect(xx, invaders[j].y + 8, 4, 5);
-          c.fillRect(xx + 6, invaders[j].y + 8, 4, 5);
-          c.fillStyle = "rgb(255,255,255)";
-          c.fillRect(invaders[j].x + 2, invaders[j].y + 2, 2, 4);
-          c.fillRect(invaders[j].x + 6, invaders[j].y + 2, 2, 4);
-          c.fillStyle = "rgb(0,0,0)";
-          c.fillRect(invaders[j].x + 2, invaders[j].y + 4, 1, 2);
-          c.fillRect(invaders[j].x + 6, invaders[j].y + 4, 1, 2);
-        }
-      }
+      gc.clearRect(0, 0, screen.width, screen.height);
 
-      // render the good guy
-      var xxx = lenex - 15;
-      var yyy = leney - 15;
-      c.drawImage(lene, xxx, yyy);
+      t1 = (t1 + dt1) % (2 * Math.PI);
+      u1 = (u1 + du1) % (2 * Math.PI);
+      pso = (pso + psdo1) % (2 * Math.PI);
 
-      // render crosshair
-      var xxx = mx - 10;
-      var yyy = my - 10;
-      c.fillStyle = "rgb(200,200,200)";
-      c.fillRect(mx - 8, my - 1, 6, 2);
-      c.fillRect(mx + 2, my - 1, 6, 2);
-      c.fillRect(mx - 1, my - 8, 2, 6);
-      c.fillRect(mx - 1, my + 2, 2, 6);
-
-      var dx = mx - lenex;
-      var dy = my - leney;
-      var len = Math.sqrt(dx * dx + dy * dy);
-
-      if (len > 1) {
-        vx = dx / len;
-        vy = dy / len;
-
-        var angle = (Math.asin(vy) < 0) ? Math.PI / 2 - Math.acos(vx) : Math.PI / 2 + Math.acos(vx);
-
-        c2.clearRect(0, 0, 30, 30);
-        // rotate the good guy
-        c2.translate(15, 15);
-        c2.rotate(angle);
-        c2.translate(-15, -15);
-        // render the good guy
-        var xxx = 15 - 9;
-        var yyy = 15 - 6;
-        c2.fillStyle = "rgb(255,255,0)";
-        c2.fillRect(xxx + 8, yyy, 2, 3);
-        c2.fillRect(xxx + 7, yyy + 3, 4, 1);
-        c2.fillRect(xxx + 1, yyy + 4, 16, 1);
-        c2.fillRect(xxx, yyy + 5, 18, 5);
-        // rotate the good guy back
-        c2.translate(15, 15);
-        c2.rotate(-angle);
-        c2.translate(-15, -15);
-      }
-
-      // for W - thruster control
-      if ((kup) && (velo < 2)) {
-        velo += acc;
-        vvx += velo * vx;
-        vvy += velo * vy;
-        // måske skal vvx og vvy abs-es?
-      } else if ((velo > 0) || (Math.abs(vvx) > 0) || (Math.abs(vvy) > 0)) {
-        velo -= dacc;
-        if (velo < 0) velo = 0;
-        vvx *= 0.95;
-        vvy *= 0.95;
-      }
-      lenex += vvx;
-      leney += vvy;
-
-      /*
-      // for AWSD control
-      // check movement keys
-        if ((lenex > 3)&&(kleft)) lenex -= 3;
-        if ((lenex < 317)&&(krigth)) lenex += 3;
-        if ((leney > 3)&&(kup)) leney -= 3;
-        if ((leney < 230)&&(kdown)) leney += 3;
-      */
-
-      tick += Math.PI / 30;
-      tick = (tick > Math.PI * 2) ? tick - 2 * Math.PI : tick;
-
-      // render the bullits from the good guy
-      for (var i = 0; i < bullits.length; i++) {
-        c.fillStyle = bullits[i].c;
-        c.fillRect(bullits[i].x, bullits[i].y, bullits[i].s, bullits[i].s);
-        bullits[i].x += bullits[i].dx;
-        bullits[i].y += bullits[i].dy;
-        //arr[i].dy -= 0.1;
-        if ((bullits[i].y > 239) ||
-          (bullits[i].x < 0) ||
-          (bullits[i].y < 0) ||
-          (bullits[i].x > 319)) {
-          bullits.splice(i, 1);
+      for (var ii = 0; ii < numberOfParticles; ii++) {
+        boom[ii].display(gc);
+        boom[ii].update();
+        if ((boom[ii].radius < 0.4) || (!boom[ii].checkEdges())) {
+          t2 = (t2 + dt2) % (2 * Math.PI);
+          boom[ii].loc = new PVector(a1 + a2 * Math.cos(t1 + t2), b1 + b2 * Math.sin(t1 + t2 + u1));
+          var angle = Math.random() * psa + pso;
+          boom[ii].vel = new PVector(Math.sin(angle), Math.cos(angle));
+          boom[ii].vel.mult(psv * Math.random() + Math.random());
+          boom[ii].radius = psc + pss * Math.random();
+          pso = (pso + psdo2) % (2 * Math.PI);
         }
       }
     }
@@ -219,101 +331,25 @@
     function mouseDown(e) {
       var xxx = e.clientX;
       var yyy = e.clientY;
-
-      var bul = {
-        x: lenex + 5 * vx,
-        y: leney + 5 * vy,
-        dx: vx,
-        dy: vy,
-        s: 2,
-        c: "yellow"
-      };
-
-      bullits.push(bul);
-
-      /*
-            // testing only -- spawn 2000 particles
-            for (var i = 0; i < 2000; i++) {
-              var ang = 2 * Math.PI * Math.random();
-              var vel = 3 * Math.random() + 0.5;
-              arr[i] = {
-                x: xxx,
-                y: yyy,
-                dx: (vel * Math.cos(ang)),
-                dy: (vel * Math.sin(ang)),
-                on: 1,
-              };
-            }
-            bada = 1;
-      */
-    }
-
-    var kdown = false;
-    var kup = false;
-    var kleft = false;
-    var krigth = false;
-
-    function keyDown(e) {
-      switch (e.keyCode) {
-        case 65:
-          kleft = true;
-          break;
-        case 68:
-          krigth = true;
-          break;
-        case 87:
-          kup = true;
-          break;
-        case 83:
-          kdown = true;
-          break;
-      }
-    }
-
-    function keyUp(e) {
-      switch (e.keyCode) {
-        case 65:
-          kleft = false;
-          break;
-        case 68:
-          krigth = false;
-          break;
-        case 87:
-          kup = false;
-          break;
-        case 83:
-          kdown = false;
-          break;
-      }
     }
 
     function mouseUp(e) {
     }
 
     function mouseMove(e) {
-      mx = e.clientX;
-      my = e.clientY;
+      //mx = e.clientX;
+      //my = e.clientY;
 
     }
 
+    console.log("Hello:" + screen.width + ", " + screen.height);
     var tick = 0;
     const canvas = document.querySelector("canvas");
-    canvas.width = 320;
-    canvas.height = 240;
-    const lene = document.createElement("canvas");
-    lene.width = 30;
-    lene.height = 30;
-    //    document.body.append(lene);
-    const c = canvas.getContext("2d");
-    const c2 = lene.getContext("2d");
-    c.clearRect(0, 0, 320, 240);
-    //    kaboom();
-    initInvaders(0);
+    const gc = canvas.getContext("2d");
+    initStjerner();
     canvas.addEventListener("mousedown", mouseDown);
     canvas.addEventListener("mouseup", mouseUp);
     canvas.addEventListener("mousemove", mouseMove);
-    document.addEventListener("keydown", keyDown, false);
-    document.addEventListener("keyup", keyUp, false);
     window.setInterval(loop, 20); 
   </script>
 </body>
