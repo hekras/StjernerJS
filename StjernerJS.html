@@ -19,12 +19,36 @@
 <body>
   <canvas></canvas>
   <script>
+    params = [
+      "Number of particles",
+      "(a1) X path center",
+      "(b1) Y path center",
+      "(a2) X path radius",
+      "(b2) Y path radius",
+      "(dt1) path rotation velocity",
+      "(du1) path rotation phase",
+      "(dt2) path rotation velocity",
+      "(pss) Particle start random",
+      "(psc) Particle start const",
+      "(pbf) Partice burnout factor",
+      "(psa) Partice start angle",
+      "(psdo1) Partice start angle tick 1",
+      "(psdo2) Partice start angle tick 2",
+      "(psv) Particle start velocity",
+      "Shape",
+      "Exit!"];
 
     function initStjerner() {
     }
 
     function loop() {
-      c.clearRect(0, 0, screen.width, screen.height);
+      gc.clearRect(0, 0, screen.width, screen.height);
+      gc.strokeStyle = "rgb(255,255,255)";
+      gc.lineWidth = 0.53;
+      gc.strokeRect(100, 100, 2000, 1500);
+
+      gc.fillStyle = "rgb(255,255,255)";
+      gc.fillRect(200, 200, 100, 100);
     }
 
     function mouseDown(e) {
@@ -36,8 +60,8 @@
     }
 
     function mouseMove(e) {
-      mx = e.clientX;
-      my = e.clientY;
+      //mx = e.clientX;
+      //my = e.clientY;
 
     }
 
@@ -46,7 +70,7 @@
     const canvas = document.querySelector("canvas");
     canvas.width = screen.width;
     canvas.height = screen.height;
-    const c = canvas.getContext("2d");
+    const gc = canvas.getContext("2d");
     initStjerner();
     canvas.addEventListener("mousedown", mouseDown);
     canvas.addEventListener("mouseup", mouseUp);
