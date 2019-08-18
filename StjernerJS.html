@@ -34,17 +34,9 @@
         this.y += v.y;
       }
 
-      add(v, u) {
-        return (new PVector(v.x + u.x, v.y + u.y));
-      }
-
       sub(v) {
         this.x -= v.x;
         this.y -= v.y;
-      }
-
-      sub(v, u) {
-        return (new PVector(v.x - u.x, v.y - u.y));
       }
 
       static random2D() {
@@ -121,9 +113,9 @@
       }
 
       update() {
-        this.loc.add(vel);
-        this.radius *= Stjerner.pbf; // @todo Stjerner.pbf
-        this.vel.add(acc);
+        this.loc.add(this.vel);
+        this.radius *= pbf; // @todo Stjerner.pbf
+        this.vel.add(this.acc);
       }
 
       // returns false if particle is outside edges
@@ -218,26 +210,6 @@
     }
 
 
-
-    var params = [
-      "Number of particles",
-      "(a1) X path center",
-      "(b1) Y path center",
-      "(a2) X path radius",
-      "(b2) Y path radius",
-      "(dt1) path rotation velocity",
-      "(du1) path rotation phase",
-      "(dt2) path rotation velocity",
-      "(pss) Particle start random",
-      "(psc) Particle start const",
-      "(pbf) Partice burnout factor",
-      "(psa) Partice start angle",
-      "(psdo1) Partice start angle tick 1",
-      "(psdo2) Partice start angle tick 2",
-      "(psv) Particle start velocity",
-      "Shape",
-      "Exit!"];
-
     var PParticleheart = [
       { "x": -0.05058692522030292, "y": -16.771209558736526 },
       { "x": -1.4051242343538144, "y": -14.905512000289317 },
@@ -261,16 +233,36 @@
       { "x": 1.4051242343538222, "y": -14.905512000289313 },
       { "x": 0.050586925220303884, "y": -16.771209558736526 }];
 
-      var numberOfParticles = 500;
+    var params = [
+      "Number of particles",
+      "(a1) X path center",
+      "(b1) Y path center",
+      "(a2) X path radius",
+      "(b2) Y path radius",
+      "(dt1) path rotation velocity",
+      "(du1) path rotation phase",
+      "(dt2) path rotation velocity",
+      "(pss) Particle start random",
+      "(psc) Particle start const",
+      "(pbf) Partice burnout factor",
+      "(psa) Partice start angle",
+      "(psdo1) Partice start angle tick 1",
+      "(psdo2) Partice start angle tick 2",
+      "(psv) Particle start velocity",
+      "Shape",
+      "Exit!"];
+
+    var WIDTH, HEIGHT;
+    var numberOfParticles = 500;
     var nnumberOfParticles = 50;
     // path params
-    var a1, a2, t1, dt1;
+    var a1, a2, t1 = 0, dt1;
     var na1 = 500.0, na2 = 500.0, ndt1 = 530.0;
-    var b1, b2, u1, du1;
+    var b1, b2, u1 = 0, du1;
     var nb1 = 500.0, nb2 = 500.0, ndu1 = 500.0;
     var t2 = 0, dt2, ndt2 = 500.0;
     // particle velocity vector params
-    var pss, npss = 0.0;
+    var pss, npss = 200.0;
     var psc, npsc = 100;
     var psa, npsa = 10;
     var pso = 0.0;
@@ -281,15 +273,59 @@
     var shape;
     var nshape = 0;
 
+    var boom = []; // all particles
 
-    sss = new PParticle(500, 500, 3, 1);
+
+    function updateTrigeometries() {
+      numberOfParticles = Math.floor(nnumberOfParticles * 10);
+      a1 = WIDTH * 0.5 + (WIDTH * 0.5 * na1 / 1000 - WIDTH * 0.25);
+      b1 = HEIGHT * 0.5 + (HEIGHT * 0.5 * nb1 / 1000 - HEIGHT * 0.25);
+      a2 = WIDTH * 0.8 * na2 / 1000.0;
+      b2 = HEIGHT * 0.8 * nb2 / 1000.0;
+      dt1 = ndt1 / 2000.0 - 0.25;
+      du1 = ndu1 / 2000.0 - 0.25;
+      dt2 = ndt2 / 2000.0 - 0.25;
+      pss = npss / 5.0;
+      psc = npsc / 5.0;
+      psa = Math.PI * npsa / 500.0;
+      psdo1 = npsdo1 / 10000.0;
+      psdo2 = npsdo2 / 10000.0;
+      psv = npsv / 50.0;
+      pbf = 1.0 - npbf / 10000.0;
+    }
+
     function initStjerner() {
+      WIDTH = canvas.width = screen.width;
+      HEIGHT = canvas.height = screen.height;
+
+      updateTrigeometries();
+
+      for (var ii = 0; ii < numberOfParticles; ii++) {
+        boom[ii] = new PParticle(WIDTH / 2, HEIGHT / 2, 2, pbf);
+      }
 
     }
 
     function loop() {
       gc.clearRect(0, 0, screen.width, screen.height);
-      sss.display(gc);
+
+      t1 = (t1 + dt1) % (2 * Math.PI);
+      u1 = (u1 + du1) % (2 * Math.PI);
+      pso = (pso + psdo1) % (2 * Math.PI);
+
+      for (var ii = 0; ii < numberOfParticles; ii++) {
+        boom[ii].display(gc);
+        boom[ii].update();
+        if ((boom[ii].radius < 0.4) || (!boom[ii].checkEdges())) {
+          t2 = (t2 + dt2) % (2 * Math.PI);
+          boom[ii].loc = new PVector(a1 + a2 * Math.cos(t1 + t2), b1 + b2 * Math.sin(t1 + t2 + u1));
+          var angle = Math.random() * psa + pso;
+          boom[ii].vel = new PVector(Math.sin(angle), Math.cos(angle));
+          boom[ii].vel.mult(psv * Math.random() + Math.random());
+          boom[ii].radius = psc + pss * Math.random();
+          pso = (pso + psdo2) % (2 * Math.PI);
+        }
+      }
     }
 
     function mouseDown(e) {
@@ -309,8 +345,6 @@
     console.log("Hello:" + screen.width + ", " + screen.height);
     var tick = 0;
     const canvas = document.querySelector("canvas");
-    canvas.width = screen.width;
-    canvas.height = screen.height;
     const gc = canvas.getContext("2d");
     initStjerner();
     canvas.addEventListener("mousedown", mouseDown);
