@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Invaders</title>
+  <style type="text/css">
+    * {
+      margin: 0;
+      border: 0;
+    }
+
+    canvas {
+      background: black;
+      cursor: none;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas></canvas>
+  <script>
+
+    var levels = [
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+
+      [0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
+      [1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1],
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+      [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
+      [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+      [0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0],
+
+    ];
+
+    /* Ideer til  spillet
+        - en stor bane hvor man flyver rundt i et rumskib og skyder aliens
+        - aliens der er lavet som 'cute invaders' og som kan være nemme eller svære at skyde ned
+        - motoren kan skiftes ud så styringen af rumskibet bliver anderledes
+        - endelig version programmeres i C# eller java - javascript+html er ikke helt så sikkert som jeg vil have det. Enhver kan læse koden 
+        - måske...
+             lave spilengine og editor komplet og lægge det ud som opensource
+             lave en lille demo af muligheder for at vise mine skills og lad det være det
+
+        - about
+             Done by Henryk Krasuski
+
+        - license
+        
+    */
+
+    var invaders = [];  // spawned invaders
+    var bullits = [];   // spawned bullits from the good guy
+    //    var arr = [];
+    var mx = 0xa0, my = 100;
+    var lenex = 320 / 2 - 9, leney = 200;
+    //    var bada = 0;
+
+    // the good guy metrics
+    var acc = 0.01;    // acelleration when W is pressed
+    var dacc = 0.15;  // decelleration when W is not pressed
+    var velo = 0;     // velocity
+    var vx = 0;       // unity vector to crosshair
+    var vy = 0;
+    var vvx = 0;       // unity vector to crosshair
+    var vvy = 0;
+
+    function initInvaders(level) {
+      var p1 = level * 8;
+      var p2 = 0;
+      invaders = [];
+      for (var i = 0; i < 8; i++) {
+        var m = levels[i + p1];
+        var y = 2 + i * 18;
+        for (var j = 0; j < m.length; j++) {
+          var x = 4 + j * 18;
+          if (m[j] > 0) {
+            invaders[p2++] = {
+              x: x,
+              y: y,
+              f: "rgb(255,0,0)",
+              dead: false
+            };
+          }
+        }
+      }
+    }
+
+    function loop() {
+      c.clearRect(0, 0, 320, 240);
+      // render the bad guys
+      for (var j = 0; j < invaders.length; j++) {
+        var founj = -1;
+        var founi = -1;
+        for (var i = 0; (i < bullits.length) && (founi < 0); i++) {
+          if ((bullits[i].y < invaders[j].y + 12) &&
+            (bullits[i].x >= invaders[j].x) &&
+            (bullits[i].y >= invaders[j].y) &&
+            (bullits[i].x <= invaders[j].x + 10)) {
+            founj = j;
+            founi = i;
+          }
+        }
+        if (founi > -1) {
+          invaders.splice(founj, 1);
+          bullits.splice(founi, 1);
+        }
+        else {
+          c.fillStyle = invaders[j].f;
+          c.fillRect(invaders[j].x + 1, invaders[j].y, 8, 1);
+          c.fillRect(invaders[j].x, invaders[j].y + 1, 10, 9);
+          var xx = invaders[j].x + 3 * Math.sin(tick);
+          c.fillRect(xx, invaders[j].y + 8, 4, 5);
+          c.fillRect(xx + 6, invaders[j].y + 8, 4, 5);
+          c.fillStyle = "rgb(255,255,255)";
+          c.fillRect(invaders[j].x + 2, invaders[j].y + 2, 2, 4);
+          c.fillRect(invaders[j].x + 6, invaders[j].y + 2, 2, 4);
+          c.fillStyle = "rgb(0,0,0)";
+          c.fillRect(invaders[j].x + 2, invaders[j].y + 4, 1, 2);
+          c.fillRect(invaders[j].x + 6, invaders[j].y + 4, 1, 2);
+        }
+      }
+
+      // render the good guy
+      var xxx = lenex - 15;
+      var yyy = leney - 15;
+      c.drawImage(lene, xxx, yyy);
+
+      // render crosshair
+      var xxx = mx - 10;
+      var yyy = my - 10;
+      c.fillStyle = "rgb(200,200,200)";
+      c.fillRect(mx - 8, my - 1, 6, 2);
+      c.fillRect(mx + 2, my - 1, 6, 2);
+      c.fillRect(mx - 1, my - 8, 2, 6);
+      c.fillRect(mx - 1, my + 2, 2, 6);
+
+      var dx = mx - lenex;
+      var dy = my - leney;
+      var len = Math.sqrt(dx * dx + dy * dy);
+
+      if (len > 1) {
+        vx = dx / len;
+        vy = dy / len;
+
+        var angle = (Math.asin(vy) < 0) ? Math.PI / 2 - Math.acos(vx) : Math.PI / 2 + Math.acos(vx);
+
+        c2.clearRect(0, 0, 30, 30);
+        // rotate the good guy
+        c2.translate(15, 15);
+        c2.rotate(angle);
+        c2.translate(-15, -15);
+        // render the good guy
+        var xxx = 15 - 9;
+        var yyy = 15 - 6;
+        c2.fillStyle = "rgb(255,255,0)";
+        c2.fillRect(xxx + 8, yyy, 2, 3);
+        c2.fillRect(xxx + 7, yyy + 3, 4, 1);
+        c2.fillRect(xxx + 1, yyy + 4, 16, 1);
+        c2.fillRect(xxx, yyy + 5, 18, 5);
+        // rotate the good guy back
+        c2.translate(15, 15);
+        c2.rotate(-angle);
+        c2.translate(-15, -15);
+      }
+
+      // for W - thruster control
+      if ((kup) && (velo < 2)) {
+        velo += acc;
+        vvx += velo * vx;
+        vvy += velo * vy;
+        // måske skal vvx og vvy abs-es?
+      } else if ((velo > 0) || (Math.abs(vvx) > 0) || (Math.abs(vvy) > 0)) {
+        velo -= dacc;
+        if (velo < 0) velo = 0;
+        vvx *= 0.95;
+        vvy *= 0.95;
+      }
+      lenex += vvx;
+      leney += vvy;
+
+      /*
+      // for AWSD control
+      // check movement keys
+        if ((lenex > 3)&&(kleft)) lenex -= 3;
+        if ((lenex < 317)&&(krigth)) lenex += 3;
+        if ((leney > 3)&&(kup)) leney -= 3;
+        if ((leney < 230)&&(kdown)) leney += 3;
+      */
+
+      tick += Math.PI / 30;
+      tick = (tick > Math.PI * 2) ? tick - 2 * Math.PI : tick;
+
+      // render the bullits from the good guy
+      for (var i = 0; i < bullits.length; i++) {
+        c.fillStyle = bullits[i].c;
+        c.fillRect(bullits[i].x, bullits[i].y, bullits[i].s, bullits[i].s);
+        bullits[i].x += bullits[i].dx;
+        bullits[i].y += bullits[i].dy;
+        //arr[i].dy -= 0.1;
+        if ((bullits[i].y > 239) ||
+          (bullits[i].x < 0) ||
+          (bullits[i].y < 0) ||
+          (bullits[i].x > 319)) {
+          bullits.splice(i, 1);
+        }
+      }
+    }
+
+    function mouseDown(e) {
+      var xxx = e.clientX;
+      var yyy = e.clientY;
+
+      var bul = {
+        x: lenex + 5 * vx,
+        y: leney + 5 * vy,
+        dx: vx,
+        dy: vy,
+        s: 2,
+        c: "yellow"
+      };
+
+      bullits.push(bul);
+
+      /*
+            // testing only -- spawn 2000 particles
+            for (var i = 0; i < 2000; i++) {
+              var ang = 2 * Math.PI * Math.random();
+              var vel = 3 * Math.random() + 0.5;
+              arr[i] = {
+                x: xxx,
+                y: yyy,
+                dx: (vel * Math.cos(ang)),
+                dy: (vel * Math.sin(ang)),
+                on: 1,
+              };
+            }
+            bada = 1;
+      */
+    }
+
+    var kdown = false;
+    var kup = false;
+    var kleft = false;
+    var krigth = false;
+
+    function keyDown(e) {
+      switch (e.keyCode) {
+        case 65:
+          kleft = true;
+          break;
+        case 68:
+          krigth = true;
+          break;
+        case 87:
+          kup = true;
+          break;
+        case 83:
+          kdown = true;
+          break;
+      }
+    }
+
+    function keyUp(e) {
+      switch (e.keyCode) {
+        case 65:
+          kleft = false;
+          break;
+        case 68:
+          krigth = false;
+          break;
+        case 87:
+          kup = false;
+          break;
+        case 83:
+          kdown = false;
+          break;
+      }
+    }
+
+    function mouseUp(e) {
+    }
+
+    function mouseMove(e) {
+      mx = e.clientX;
+      my = e.clientY;
+
+    }
+
+    var tick = 0;
+    const canvas = document.querySelector("canvas");
+    canvas.width = 320;
+    canvas.height = 240;
+    const lene = document.createElement("canvas");
+    lene.width = 30;
+    lene.height = 30;
+    //    document.body.append(lene);
+    const c = canvas.getContext("2d");
+    const c2 = lene.getContext("2d");
+    c.clearRect(0, 0, 320, 240);
+    //    kaboom();
+    initInvaders(0);
+    canvas.addEventListener("mousedown", mouseDown);
+    canvas.addEventListener("mouseup", mouseUp);
+    canvas.addEventListener("mousemove", mouseMove);
+    document.addEventListener("keydown", keyDown, false);
+    document.addEventListener("keyup", keyUp, false);
+    window.setInterval(loop, 20);
+  </script>
+</body>
+
+</html>
