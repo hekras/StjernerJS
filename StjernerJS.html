@@ -261,6 +261,27 @@
       { "x": 1.4051242343538222, "y": -14.905512000289313 },
       { "x": 0.050586925220303884, "y": -16.771209558736526 }];
 
+      var numberOfParticles = 500;
+    var nnumberOfParticles = 50;
+    // path params
+    var a1, a2, t1, dt1;
+    var na1 = 500.0, na2 = 500.0, ndt1 = 530.0;
+    var b1, b2, u1, du1;
+    var nb1 = 500.0, nb2 = 500.0, ndu1 = 500.0;
+    var t2 = 0, dt2, ndt2 = 500.0;
+    // particle velocity vector params
+    var pss, npss = 0.0;
+    var psc, npsc = 100;
+    var psa, npsa = 10;
+    var pso = 0.0;
+    var psdo1 = 0.0, npsdo1 = 0.0;
+    var psdo2, npsdo2 = 200.0;
+    var pbf, npbf = 50;
+    var psv, npsv = 10;
+    var shape;
+    var nshape = 0;
+
+
     sss = new PParticle(500, 500, 3, 1);
     function initStjerner() {
 
