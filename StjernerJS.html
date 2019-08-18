@@ -253,8 +253,8 @@
       "Exit!"];
 
     var WIDTH, HEIGHT;
-    var numberOfParticles = 500;
-    var nnumberOfParticles = 50;
+    var numberOfParticles = 20;
+    var nnumberOfParticles = 100;
     // path params
     var a1, a2, t1 = 0, dt1;
     var na1 = 500.0, na2 = 500.0, ndt1 = 530.0;
@@ -301,7 +301,7 @@
       updateTrigeometries();
 
       for (var ii = 0; ii < numberOfParticles; ii++) {
-        boom[ii] = new PParticle(WIDTH / 2, HEIGHT / 2, 2, pbf);
+        boom[ii] = new PParticle(WIDTH / 2, HEIGHT / 2, 4, pbf);
       }
 
     }
