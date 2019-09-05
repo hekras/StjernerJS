@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Kisser</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            background: rgb(0, 0, 0);
+            border: 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas></canvas>
+</body>
+<script>
+    var tick = 0;
+    const dtick = 0.1;
+    var statemachine = 0;
+    var kisser = {};
+
+    function kisserloop() {
+        dc.clearRect(0, 0, width, height);
+        var s = 5;
+
+        switch (statemachine) {
+            case 0: // start the show
+                kisser = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 0.1,
+                    maxscale: 10.0,
+                    angle: Math.PI,
+                    targetangle: Math.PI + 0.5,
+                    dangle: 0.02,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                kisser.scale *= 1.01;
+                if (kisser.scale > kisser.maxscale) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // twist a little
+                kisser.angle += kisser.dangle;
+                if (kisser.angle > kisser.targetangle) {
+                    kisser.targetangle = Math.PI - 0.5,
+                        statemachine = 3;
+                }
+                break;
+            case 3: // twist a little
+                kisser.angle -= kisser.dangle;
+                if (kisser.angle < kisser.targetangle) {
+                    kisser.targetangle = Math.PI + 0.5,
+                        statemachine = 4;
+                }
+                break;
+            case 4: // twist a little
+                kisser.angle += kisser.dangle;
+                if (kisser.angle > kisser.targetangle) {
+                    kisser.targetangle = Math.PI - 0.5,
+                        statemachine = 5;
+                }
+                break;
+            case 5: // twist a little
+                kisser.angle -= kisser.dangle;
+                if (kisser.angle < kisser.targetangle) {
+                    kisser.targetangle = Math.PI + 0.5,
+                        statemachine = 6;
+                    kisser.maxscale = 100;
+
+                }
+                break;
+            case 6: // increase size and move out of view
+                kisser.scale *= 1.01;
+                kisser.angle += kisser.dangle;
+                kisser.x += kisser.scale * Math.cos(kisser.angle);
+                kisser.y += kisser.scale * Math.sin(kisser.angle);
+                if (kisser.scale > kisser.maxscale) {
+                    statemachine = 0;
+                }
+                break;
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+        var size = tick / 10;
+
+        dc.save();
+        dc.translate(kisser.x, kisser.y);
+        dc.rotate(kisser.angle);
+        dc.scale(kisser.scale, kisser.scale);
+        dc.strokeStyle = "YELLOW";
+        dc.scale(0.1, 0.1);
+        dc.lineWidth = 3;
+        dc.beginPath();
+        dc.lineTo(-0.05058, -16.771209);
+        dc.lineTo(-1.40512, -14.905512);
+        dc.lineTo(-5.54724, -11.601373);
+        dc.lineTo(-11.57766, -7.096828);
+        dc.lineTo(-16.62438, -1.209467);
+        dc.lineTo(-17.86506, 5.612500);
+        dc.lineTo(-14.57386, 11.36275);
+        dc.lineTo(-8.65170, 13.44752);
+        dc.lineTo(-3.24035, 11.16190);
+        dc.lineTo(-0.46455, 7.02084);
+        dc.lineTo(0.00000, 5.00000);
+        dc.lineTo(0.46455, 7.02084);
+        dc.lineTo(3.24035, 11.16190);
+        dc.lineTo(8.65170, 13.44752);
+        dc.lineTo(14.57386, 11.36275);
+        dc.lineTo(17.86506, 5.61250);
+        dc.lineTo(16.62438, -1.20946);
+        dc.lineTo(11.57766, -7.09682);
+        dc.lineTo(5.54724, -11.60137);
+        dc.lineTo(1.40512, -14.90551);
+        dc.lineTo(0.05058, -16.77120);
+        dc.scale(2, 2);
+        dc.moveTo(-30.05058, -20.771209);
+        dc.lineTo(-70.05058, -36.771209)
+        dc.moveTo(30.05058, -20.771209);
+        dc.lineTo(70.05058, -36.771209)
+        dc.moveTo(-30.05058, -6.771209);
+        dc.lineTo(-70.05058, -10.771209)
+        dc.moveTo(30.05058, -6.771209);
+        dc.lineTo(70.05058, -10.771209)
+        dc.moveTo(30.05058, 8.771209);
+        dc.lineTo(70.05058, 15.771209)
+        dc.moveTo(-30.05058, 8.771209);
+        dc.lineTo(-70.05058, 15.771209)
+        dc.moveTo(70.0, 80.0);
+        dc.lineTo(60.0, 110.0)
+        dc.lineTo(30.0, 85.0)
+        dc.moveTo(60.0, 90.0);
+        dc.lineTo(55.0, 100.0)
+        dc.lineTo(40.0, 85.0)
+        dc.moveTo(-70.0, 80.0);
+        dc.lineTo(-60.0, 110.0)
+        dc.lineTo(-30.0, 85.0)
+        dc.moveTo(-60.0, 90.0);
+        dc.lineTo(-55.0, 100.0)
+        dc.lineTo(-40.0, 85.0)
+        dc.stroke();
+        dc.restore();
+        boom[i].angle += boom[i].dangle;
+        boom[i].mangle += boom[i].dangle;
+    }
+
+
+    /***********************************
+    // main - program starts here !!!!!!
+    ************************************/
+    const canvas = document.querySelector("canvas");
+    const width = canvas.width = window.innerWidth;
+    const height = canvas.height = window.innerHeight;
+    const dc = canvas.getContext("2d");
+
+    //    c.clearRect(0, 0, 1920, 1080);
+    window.setInterval(kisserloop, 20);
+
+
+</script>
+
+</html>

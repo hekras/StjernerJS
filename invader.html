@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Alien</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            background: rgb(0, 0, 0);
+            border: 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas></canvas>
+</body>
+<script>
+    var tick = 0;
+    const dtick = 0.1;
+    var statemachine = 0;
+    var kisser = {};
+
+    function alienloop() {
+        dc.clearRect(0, 0, width, height);
+        var s = 5;
+
+        switch (statemachine) {
+            case 0: // start the show
+                kisser = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 0.1,
+                    maxscale: 10.0,
+                    angle: 0.0,
+                    targetangle: 0.5,
+                    dangle: 0.015,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                kisser.scale *= 1.01;
+                if (kisser.scale > kisser.maxscale) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // twist a little
+                kisser.angle += kisser.dangle;
+                if (kisser.angle > kisser.targetangle) {
+                    kisser.targetangle = - 0.5,
+                        statemachine = 3;
+                }
+                break;
+            case 3: // twist a little
+                kisser.angle -= kisser.dangle;
+                if (kisser.angle < kisser.targetangle) {
+                    kisser.targetangle = 0.5,
+                        statemachine = 4;
+                }
+                break;
+            case 4: // twist a little
+                kisser.angle += kisser.dangle;
+                if (kisser.angle > kisser.targetangle) {
+                    kisser.targetangle = - 0.5,
+                        statemachine = 5;
+                }
+                break;
+            case 5: // twist a little
+                kisser.angle -= kisser.dangle;
+                if (kisser.angle < kisser.targetangle) {
+                    kisser.targetangle = 0.5,
+                        statemachine = 6;
+                    kisser.maxscale = 100;
+
+                }
+                break;
+            case 6: // increase size and move out of view
+                kisser.scale *= 1.01;
+                kisser.angle -= kisser.dangle;
+                kisser.x += kisser.scale * Math.cos(kisser.angle);
+                kisser.y += kisser.scale * Math.sin(kisser.angle);
+                if (kisser.scale > kisser.maxscale) {
+                    statemachine = 0;
+                }
+                break;
+
+            default:
+                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+        var size = tick / 10;
+
+        dc.save();
+        var s = 5;
+        dc.translate(kisser.x, kisser.y); // center of window
+        var scale = kisser.size + Math.sin(kisser.angle);
+        dc.scale(kisser.scale, kisser.scale);
+        dc.rotate(kisser.angle);
+        dc.fillStyle = "RED";
+        dc.fillRect(-4 * s, -6 * s, 8 * s, 2 * s);
+        dc.fillRect(-5 * s, -5 * s, 10 * s, 9 * s);
+        var xx = s * 3 * Math.sin(tick) - 5 * s;
+        dc.fillRect(xx, 2 * s, 4 * s, 5 * s);
+        dc.fillRect(xx + 6 * s, 2 * s, s * 4, s * 5);
+        dc.fillStyle = "WHITE";
+        dc.fillRect(-3 * s, -4 * s, 2 * s, 4 * s);
+        dc.fillRect(1 * s, -4 * s, 2 * s, 4 * s);
+        dc.fillStyle = "BLACK";
+        dc.fillRect(-3 * s, -2 * s, s, 2 * s);
+        dc.fillRect(1 * s, -2 * s, s, 2 * s);
+        dc.restore();
+    }
+
+
+    /***********************************
+    // main - program starts here !!!!!!
+    ************************************/
+    const canvas = document.querySelector("canvas");
+    const width = canvas.width = window.innerWidth;
+    const height = canvas.height = window.innerHeight;
+    const dc = canvas.getContext("2d");
+
+    window.setInterval(alienloop, 20);
+
+
+</script>
+
+</html>
