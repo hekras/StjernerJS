@@ -28,7 +28,7 @@
 
         switch (statemachine) {
             case 0: // start the show
-                kisser = {
+                alien = {
                     x: width / 2,
                     y: height / 2,
                     scale: 0.1,
@@ -40,53 +40,53 @@
                 statemachine = 1;
                 break;
             case 1: // increase size
-                kisser.scale *= 1.01;
-                if (kisser.scale > kisser.maxscale) {
+                alien.scale *= 1.01;
+                if (alien.scale > alien.maxscale) {
                     statemachine = 2;
                 }
                 break;
             case 2: // twist a little
-                kisser.angle += kisser.dangle;
-                if (kisser.angle > kisser.targetangle) {
-                    kisser.targetangle = - 0.5,
+                alien.angle += alien.dangle;
+                if (alien.angle > alien.targetangle) {
+                    alien.targetangle = - 0.5,
                         statemachine = 3;
                 }
                 break;
             case 3: // twist a little
-                kisser.angle -= kisser.dangle;
-                if (kisser.angle < kisser.targetangle) {
-                    kisser.targetangle = 0.5,
+                alien.angle -= alien.dangle;
+                if (alien.angle < alien.targetangle) {
+                    alien.targetangle = 0.5,
                         statemachine = 4;
                 }
                 break;
             case 4: // twist a little
-                kisser.angle += kisser.dangle;
-                if (kisser.angle > kisser.targetangle) {
-                    kisser.targetangle = - 0.5,
+                alien.angle += alien.dangle;
+                if (alien.angle > alien.targetangle) {
+                    alien.targetangle = - 0.5,
                         statemachine = 5;
                 }
                 break;
             case 5: // twist a little
-                kisser.angle -= kisser.dangle;
-                if (kisser.angle < kisser.targetangle) {
-                    kisser.targetangle = 0.5,
+                alien.angle -= alien.dangle;
+                if (alien.angle < alien.targetangle) {
+                    alien.targetangle = 0.5,
                         statemachine = 6;
-                    kisser.maxscale = 100;
+                    alien.maxscale = 100;
 
                 }
                 break;
             case 6: // increase size and move out of view
-                kisser.scale *= 1.01;
-                kisser.angle -= kisser.dangle;
-                kisser.x += kisser.scale * Math.cos(kisser.angle);
-                kisser.y += kisser.scale * Math.sin(kisser.angle);
-                if (kisser.scale > kisser.maxscale) {
+                alien.scale *= 1.01;
+                alien.angle -= alien.dangle;
+                alien.x += alien.scale * Math.cos(alien.angle);
+                alien.y += alien.scale * Math.sin(alien.angle);
+                if (alien.scale > alien.maxscale) {
                     statemachine = 0;
                 }
                 break;
 
             default:
-                console.log("statemachine=" + statemachine);
+//                console.log("statemachine=" + statemachine);
         }
 
         tick += dtick;
@@ -95,10 +95,10 @@
 
         dc.save();
         var s = 5;
-        dc.translate(kisser.x, kisser.y); // center of window
-        var scale = kisser.size + Math.sin(kisser.angle);
-        dc.scale(kisser.scale, kisser.scale);
-        dc.rotate(kisser.angle);
+        dc.translate(alien.x, alien.y); // center of window
+        var scale = alien.size + Math.sin(alien.angle);
+        dc.scale(alien.scale, alien.scale);
+        dc.rotate(alien.angle);
         dc.fillStyle = "RED";
         dc.fillRect(-4 * s, -6 * s, 8 * s, 2 * s);
         dc.fillRect(-5 * s, -5 * s, 10 * s, 9 * s);
