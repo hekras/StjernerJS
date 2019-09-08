@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Love</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            background: rgb(0, 0, 0);
+            border: 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas></canvas>
+</body>
+<script>
+    var tick = 0;
+    const dtick = 0.05;
+    var statemachine = 0;
+    var love = {};
+
+    function loveloop() {
+        dc.clearRect(0, 0, width, height);
+        var s = 5;
+
+        switch (statemachine) {
+            case 0: // start the show
+                love = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 0.1,
+                    size: 20.0,
+                    maxscale: 10.0,
+                    angle: 0.0,
+                    targetangle: 0.5,
+                    dangle: 0.015,
+                    mangle: 3.1457,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                love.scale *= 1.01;
+                if (love.scale > love.maxscale) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // twist a little
+                love.angle += love.dangle;
+                if (love.angle > love.targetangle) {
+                    love.targetangle = - 0.5,
+                        statemachine = 3;
+                }
+                break;
+            case 3: // twist a little
+                love.angle -= love.dangle;
+                if (love.angle < love.targetangle) {
+                    love.targetangle = 0.5,
+                        statemachine = 4;
+                }
+                break;
+            case 4: // twist a little
+                love.angle += love.dangle;
+                if (love.angle > love.targetangle) {
+                    love.targetangle = - 0.5,
+                        statemachine = 5;
+                }
+                break;
+            case 5: // twist a little
+                love.angle -= love.dangle;
+                if (love.angle < love.targetangle) {
+                    love.targetangle = 0.5,
+                        statemachine = 6;
+                    love.maxscale = 100;
+
+                }
+                break;
+            case 6: // increase size and move out of view
+                love.scale *= 1.01;
+                love.angle -= love.dangle;
+                love.x += love.scale * Math.cos(love.angle);
+                love.y += love.scale * Math.sin(love.angle);
+                if (love.scale > love.maxscale) {
+                    statemachine = 0;
+                }
+                break;
+
+            default:
+            //                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+
+
+
+
+        dc.save();
+        dc.translate(love.x, love.y); // center of window
+        dc.rotate(love.mangle);
+        var scale = love.size * (1 + Math.sin(love.angle + angle));
+        dc.scale(scale, scale);
+        dc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+        dc.strokeStyle = "#FFFFFF"; //gc.setFill(Color.RED); 
+        dc.lineWidth = 1;
+        dc.beginPath();
+
+        // init shape coordinates
+        var dmyt = 6.0 / 60.0;
+        var index = 0;
+        for (var myt = -3.5; myt < 3; myt += dmyt) {
+            var x = 18 * Math.pow(Math.sin(myt), 3);
+            var y = 14 * Math.cos(myt) - 5 * Math.cos(2 * myt) - 3 * Math.cos(3 * myt) - Math.cos(4 * myt);
+            dc.lineTo(x, y);
+            index++;
+
+        }
+        dc.fill();
+        dc.stroke();
+        dc.restore();
+        love.angle += love.dangle;
+        love.mangle += love.dangle;
+    }
+
+
+    /***********************************
+    // main - program starts here !!!!!!
+    ************************************/
+    const canvas = document.querySelector("canvas");
+    const width = canvas.width = window.innerWidth;
+    const height = canvas.height = window.innerHeight;
+    const dc = canvas.getContext("2d");
+
+    window.setInterval(loveloop, 20);
+
+
+</script>
+
+</html>
