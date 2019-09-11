@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Kisser</title>
+    <title>Handmixer</title>
     <style type="text/css">
         * {
             margin: 0;
@@ -22,6 +22,60 @@
     var kisser = {};
     var flag = {};
     var alien = {};
+    var love = {};
+
+    function animateLove() {
+        switch (statemachine) {
+            case 0: // start the show
+                love = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 0.1,
+                    size: 20.0,
+                    maxscale: 10.0,
+                    angle: 0.0,
+                    targetangle: 0.5,
+                    dangle: 0.015,
+                    mangle: 3.1457,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                love.scale *= 1.01;
+                if (love.scale > love.maxscale) {
+                    statemachine = 1;
+                }
+                break;
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+        dc.save();
+        dc.translate(love.x, love.y); // center of window
+        dc.rotate(love.mangle);
+        var scale = love.size * (1 + Math.sin(love.angle + angle));
+        dc.scale(scale, scale);
+        dc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+        dc.strokeStyle = "#FFFFFF"; //gc.setFill(Color.RED); 
+        dc.lineWidth = 1;
+        dc.beginPath();
+
+        // init shape coordinates
+        var dmyt = 6.0 / 60.0;
+        var index = 0;
+        for (var myt = -3.5; myt < 3; myt += dmyt) {
+            var x = 18 * Math.pow(Math.sin(myt), 3);
+            var y = 14 * Math.cos(myt) - 5 * Math.cos(2 * myt) - 3 * Math.cos(3 * myt) - Math.cos(4 * myt);
+            dc.lineTo(x, y);
+            index++;
+
+        }
+        dc.fill();
+        dc.stroke();
+        dc.restore();
+        love.angle += love.dangle;
+        love.mangle += love.dangle;
+    }
 
     function animateAlien() {
         var s = 5;
@@ -296,57 +350,81 @@
             case 2: //Alien
                 animateAlien();
                 break;
+            case 3: //Love
+                animateLove();
+                break;
 
         }
 
-        dc.drawImage(menucanvas[currentmenu], 0, 0);
-
+        if (menutimeout < activitytimer) {
+            dc.drawImage(menucanvas[currentmenu], 0, 0);
+        }
+        menutimeout++;
     }
 
     function mouseDown(e) {
-        var xxx = e.clientX;
-        var yyy = e.clientY;
 
-        //        console.log("=================================");
-        for (var i = 0; i < 3; i++) {
-            var cx = 75 + 105 * i;
-            var cy = 75;
-            var dx = xxx - cx;
-            var dy = yyy - cy;
-            var dist2 = dx * dx + dy * dy;
+        if (menutimeout < activitytimer) {
+            var xxx = e.clientX;
+            var yyy = e.clientY;
 
-            //            console.log("c=("+cx+", "+cy+")  ppp=("+xxx+", "+yyy+") dist2="+ dist2);
-            if (dist2 < 2800) {
-                if (i != currentmenu) {
-                    currentmenu = i;
-                    statemachine = 0;
+            for (var i = 0; i < 4; i++) {
+                var cx = 75 + 105 * i;
+                var cy = 75;
+                var dx = xxx - cx;
+                var dy = yyy - cy;
+                var dist2 = dx * dx + dy * dy;
+
+                if (dist2 < 2800) {
+                    if (i != currentmenu) {
+                        currentmenu = i;
+                        statemachine = 0;
+                    }
+                    break;
                 }
-                break;
             }
         }
-
+        menutimeout = 0;
     }
 
     function mouseUp(e) {
+        menutimeout = 0;
     }
 
     function mouseMove(e) {
-        //mx = e.clientX;
-        //my = e.clientY;
+        menutimeout = 0;
+        var xxx = e.clientX;
+        var yyy = e.clientY;
+        var cursor = "default";
+        if (menutimeout < activitytimer) {
+            for (var i = 0; i < 4; i++) {
+                var cx = 75 + 105 * i;
+                var cy = 75;
+                var dx = xxx - cx;
+                var dy = yyy - cy;
+                var dist2 = dx * dx + dy * dy;
 
+                if (dist2 < 2800) {
+                    cursor = "pointer";
+                    break;
+                }
+            }
+        }
+        canvas.style.cursor = cursor;
     }
 
     function initMenuCanvas() {
+        var menuItems = 4;
 
-        for (var j = 0; j < 3; j++) {
+        for (var j = 0; j < menuItems; j++) {
             menucanvas[j] = document.createElement("canvas");
-            menucanvas[j].width = 500;
-            menucanvas[j].height = 200;
+            menucanvas[j].width = 1500;
+            menucanvas[j].height = 135;
             var mdc = menucanvas[j].getContext("2d");
 
             mdc.strokeStyle = "gray";
             mdc.fillStyle = "rgb(100,0,0)";
-            for (var i = 0; i < 3; i++) {
+            for (var i = 0; i < menuItems; i++) {
                 mdc.beginPath();
                 mdc.arc(75 + 105 * i, 75, 50, 0, 2 * Math.PI);
                 if (i == j) {
@@ -416,13 +494,11 @@
             mdc.restore();
 
             mdc.save();
-            mdc.translate(170.0, 75.0); // center of window
-            //        mdc.rotate(fl);
-            //        var scale = flag.size * (1 + Math.sin(flag.angle + angle));
+            mdc.translate(170.0, 75.0);
             mdc.scale(1.0, 1.0);
-            mdc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+            mdc.fillStyle = "#FFFFFF";
             mdc.fillRect(-20.0, -20.0, 60.0, 40.0);
-            mdc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+            mdc.fillStyle = "#FF0000";
             mdc.fillRect(-20.0, -20.0, 17.0, 17.0);
             mdc.fillRect(-20.0, 3.0, 17.0, 17.0);
             mdc.fillRect(3.0, -20.0, 37.0, 17.0);
@@ -431,7 +507,7 @@
 
             mdc.save();
             var s = 5;
-            mdc.translate(285.0, 75.0); // center of window
+            mdc.translate(285.0, 75.0);
             mdc.scale(1.0, 1.0);
             mdc.fillStyle = "RED";
             mdc.fillRect(-4 * s, -6 * s, 8 * s, 2 * s);
@@ -446,6 +522,30 @@
             mdc.fillRect(-3 * s, -2 * s, s, 2 * s);
             mdc.fillRect(1 * s, -2 * s, s, 2 * s);
             mdc.restore();
+
+            mdc.save();
+            mdc.translate(390.0, 75.0);
+            mdc.rotate(Math.PI);
+            mdc.scale(2.0, 2.0);
+            mdc.fillStyle = "#FF0000";
+            mdc.strokeStyle = "#FFFFFF";
+            mdc.lineWidth = 1;
+            mdc.beginPath();
+
+            // init shape coordinates
+            var dmyt = 6.0 / 60.0;
+            var index = 0;
+            for (var myt = -3.5; myt < 3; myt += dmyt) {
+                var x = 18 * Math.pow(Math.sin(myt), 3);
+                var y = 14 * Math.cos(myt) - 5 * Math.cos(2 * myt) - 3 * Math.cos(3 * myt) - Math.cos(4 * myt);
+                mdc.lineTo(x, y);
+                index++;
+
+            }
+            mdc.fill();
+            mdc.stroke();
+            mdc.restore();
+
         }
     }
 
@@ -459,8 +559,9 @@
     var menucanvas = [];
     var currentmenu = 0;
     var statemachine = 0;
+    var menutimeout = 1000;
+    var activitytimer = 100;
 
-    //    c.clearRect(0, 0, 1920, 1080);
     initMenuCanvas();
     canvas.addEventListener("mousedown", mouseDown);
     canvas.addEventListener("mouseup", mouseUp);
