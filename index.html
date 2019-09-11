@@ -19,13 +19,148 @@
 <script>
     var tick = 0;
     const dtick = 0.1;
-    var statemachine = 0;
     var kisser = {};
+    var flag = {};
+    var alien = {};
 
-    function kisserloop() {
-        dc.clearRect(0, 0, width, height);
+    function animateAlien() {
         var s = 5;
 
+        switch (statemachine) {
+            case 0: // start the show
+                alien = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 0.1,
+                    maxscale: 10.0,
+                    angle: 0.0,
+                    targetangle: 0.5,
+                    dangle: 0.015,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                alien.scale *= 1.01;
+                if (alien.scale > alien.maxscale) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // twist a little
+                alien.angle += alien.dangle;
+                if (alien.angle > alien.targetangle) {
+                    alien.targetangle = - 0.5,
+                        statemachine = 3;
+                }
+                break;
+            case 3: // twist a little
+                alien.angle -= alien.dangle;
+                if (alien.angle < alien.targetangle) {
+                    alien.targetangle = 0.5,
+                        statemachine = 4;
+                }
+                break;
+            case 4: // twist a little
+                alien.angle += alien.dangle;
+                if (alien.angle > alien.targetangle) {
+                    alien.targetangle = - 0.5,
+                        statemachine = 5;
+                }
+                break;
+            case 5: // twist a little
+                alien.angle -= alien.dangle;
+                if (alien.angle < alien.targetangle) {
+                    alien.targetangle = 0.5,
+                        statemachine = 6;
+                    alien.maxscale = 100;
+
+                }
+                break;
+            case 6: // increase size and move out of view
+                alien.scale *= 1.01;
+                alien.angle -= alien.dangle;
+                alien.x += alien.scale * Math.cos(alien.angle);
+                alien.y += alien.scale * Math.sin(alien.angle);
+                if (alien.scale > alien.maxscale) {
+                    statemachine = 0;
+                }
+                break;
+
+            default:
+            //                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+        var size = tick / 10;
+
+        dc.save();
+        var s = 5;
+        dc.translate(alien.x, alien.y); // center of window
+        var scale = alien.size + Math.sin(alien.angle);
+        dc.scale(alien.scale, alien.scale);
+        dc.rotate(alien.angle);
+        dc.fillStyle = "RED";
+        dc.fillRect(-4 * s, -6 * s, 8 * s, 2 * s);
+        dc.fillRect(-5 * s, -5 * s, 10 * s, 9 * s);
+        var xx = s * 3 * Math.sin(tick) - 5 * s;
+        dc.fillRect(xx, 2 * s, 4 * s, 5 * s);
+        dc.fillRect(xx + 6 * s, 2 * s, s * 4, s * 5);
+        dc.fillStyle = "WHITE";
+        dc.fillRect(-3 * s, -4 * s, 2 * s, 4 * s);
+        dc.fillRect(1 * s, -4 * s, 2 * s, 4 * s);
+        dc.fillStyle = "BLACK";
+        dc.fillRect(-3 * s, -2 * s, s, 2 * s);
+        dc.fillRect(1 * s, -2 * s, s, 2 * s);
+        dc.restore();
+    }
+
+    function animateFlag() {
+        switch (statemachine) {
+            case 0: // start the show
+                flag = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 10,
+                    size: 20.0,
+                    maxscale: 0.1,
+                    angle: 0.0,
+                    targetangle: 0.5,
+                    dangle: 0.015,
+                    mangle: 3.1457,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                flag.scale *= 1.01;
+                if (flag.scale > flag.maxscale) {
+                    statemachine = 1;
+                }
+                break;
+            default:
+            //                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+
+        dc.save();
+        dc.translate(flag.x, flag.y); // center of window
+        dc.rotate(flag.mangle);
+        var scale = flag.size * (1 + Math.sin(flag.angle + angle));
+        dc.scale(scale, scale);
+        dc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+        dc.fillRect(-20.0, -20.0, 60.0, 40.0);
+        dc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+        dc.fillRect(-20.0, -20.0, 17.0, 17.0);
+        dc.fillRect(-20.0, 3.0, 17.0, 17.0);
+        dc.fillRect(3.0, -20.0, 37.0, 17.0);
+        dc.fillRect(3.0, 3.0, 37.0, 17.0);
+        dc.restore();
+        flag.angle += flag.dangle;
+        flag.mangle += flag.dangle;
+    }
+
+    function animateKisser() {
         switch (statemachine) {
             case 0: // start the show
                 kisser = {
@@ -85,8 +220,6 @@
                 }
                 break;
         }
-
-
 
         tick += dtick;
         var angle = tick / 2;
@@ -148,6 +281,23 @@
         dc.lineTo(-40.0, 85.0)
         dc.stroke();
         dc.restore();
+    }
+
+
+    function animateloop() {
+        dc.clearRect(0, 0, width, height);
+        switch (currentmenu) {
+            case 0: //kisser
+                animateKisser();
+                break;
+            case 1: //Flag
+                animateFlag();
+                break;
+            case 2: //Alien
+                animateAlien();
+                break;
+
+        }
 
         dc.drawImage(menucanvas[currentmenu], 0, 0);
 
@@ -157,7 +307,7 @@
         var xxx = e.clientX;
         var yyy = e.clientY;
 
-//        console.log("=================================");
+        //        console.log("=================================");
         for (var i = 0; i < 3; i++) {
             var cx = 75 + 105 * i;
             var cy = 75;
@@ -165,12 +315,16 @@
             var dy = yyy - cy;
             var dist2 = dx * dx + dy * dy;
 
-//            console.log("c=("+cx+", "+cy+")  ppp=("+xxx+", "+yyy+") dist2="+ dist2);
-            if (dist2 < 2800){
-                currentmenu = i;
+            //            console.log("c=("+cx+", "+cy+")  ppp=("+xxx+", "+yyy+") dist2="+ dist2);
+            if (dist2 < 2800) {
+                if (i != currentmenu) {
+                    currentmenu = i;
+                    statemachine = 0;
+                }
                 break;
             }
         }
+
     }
 
     function mouseUp(e) {
@@ -304,13 +458,14 @@
     const dc = canvas.getContext("2d");
     var menucanvas = [];
     var currentmenu = 0;
+    var statemachine = 0;
 
     //    c.clearRect(0, 0, 1920, 1080);
     initMenuCanvas();
     canvas.addEventListener("mousedown", mouseDown);
     canvas.addEventListener("mouseup", mouseUp);
     canvas.addEventListener("mousemove", mouseMove);
-    window.setInterval(kisserloop, 20);
+    window.setInterval(animateloop, 20);
 
 
 </script>
