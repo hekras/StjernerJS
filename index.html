@@ -86,6 +86,8 @@
                 break;
         }
 
+
+
         tick += dtick;
         var angle = tick / 2;
         var size = tick / 10;
@@ -146,10 +148,152 @@
         dc.lineTo(-40.0, 85.0)
         dc.stroke();
         dc.restore();
-        boom[i].angle += boom[i].dangle;
-        boom[i].mangle += boom[i].dangle;
+
+        dc.drawImage(menucanvas[currentmenu], 0, 0);
+
     }
 
+    function mouseDown(e) {
+        var xxx = e.clientX;
+        var yyy = e.clientY;
+
+//        console.log("=================================");
+        for (var i = 0; i < 3; i++) {
+            var cx = 75 + 105 * i;
+            var cy = 75;
+            var dx = xxx - cx;
+            var dy = yyy - cy;
+            var dist2 = dx * dx + dy * dy;
+
+//            console.log("c=("+cx+", "+cy+")  ppp=("+xxx+", "+yyy+") dist2="+ dist2);
+            if (dist2 < 2800){
+                currentmenu = i;
+                break;
+            }
+        }
+    }
+
+    function mouseUp(e) {
+    }
+
+    function mouseMove(e) {
+        //mx = e.clientX;
+        //my = e.clientY;
+
+    }
+
+    function initMenuCanvas() {
+
+        for (var j = 0; j < 3; j++) {
+            menucanvas[j] = document.createElement("canvas");
+            menucanvas[j].width = 500;
+            menucanvas[j].height = 200;
+            var mdc = menucanvas[j].getContext("2d");
+
+            mdc.strokeStyle = "gray";
+            mdc.fillStyle = "rgb(100,0,0)";
+            for (var i = 0; i < 3; i++) {
+                mdc.beginPath();
+                mdc.arc(75 + 105 * i, 75, 50, 0, 2 * Math.PI);
+                if (i == j) {
+                    mdc.fill();
+                }
+                mdc.stroke();
+            }
+            mdc.fillStyle = "white";
+            mdc.font = "14px arial";
+            mdc.fillText("Last update: 09-11-2019 / Handmixer", 10, 17);
+
+            mdc.save();
+            mdc.translate(75, 90);
+            mdc.rotate(Math.PI);
+            mdc.scale(1.0, 1.0);
+            mdc.strokeStyle = "YELLOW";
+            mdc.scale(0.2, 0.2);
+            mdc.lineWidth = 3;
+            mdc.beginPath();
+            mdc.lineTo(-0.05058, -16.771209);
+            mdc.lineTo(-1.40512, -14.905512);
+            mdc.lineTo(-5.54724, -11.601373);
+            mdc.lineTo(-11.57766, -7.096828);
+            mdc.lineTo(-16.62438, -1.209467);
+            mdc.lineTo(-17.86506, 5.612500);
+            mdc.lineTo(-14.57386, 11.36275);
+            mdc.lineTo(-8.65170, 13.44752);
+            mdc.lineTo(-3.24035, 11.16190);
+            mdc.lineTo(-0.46455, 7.02084);
+            mdc.lineTo(0.00000, 5.00000);
+            mdc.lineTo(0.46455, 7.02084);
+            mdc.lineTo(3.24035, 11.16190);
+            mdc.lineTo(8.65170, 13.44752);
+            mdc.lineTo(14.57386, 11.36275);
+            mdc.lineTo(17.86506, 5.61250);
+            mdc.lineTo(16.62438, -1.20946);
+            mdc.lineTo(11.57766, -7.09682);
+            mdc.lineTo(5.54724, -11.60137);
+            mdc.lineTo(1.40512, -14.90551);
+            mdc.lineTo(0.05058, -16.77120);
+            mdc.scale(2, 2);
+            mdc.moveTo(-30.05058, -20.771209);
+            mdc.lineTo(-70.05058, -36.771209)
+            mdc.moveTo(30.05058, -20.771209);
+            mdc.lineTo(70.05058, -36.771209)
+            mdc.moveTo(-30.05058, -6.771209);
+            mdc.lineTo(-70.05058, -10.771209)
+            mdc.moveTo(30.05058, -6.771209);
+            mdc.lineTo(70.05058, -10.771209)
+            mdc.moveTo(30.05058, 8.771209);
+            mdc.lineTo(70.05058, 15.771209)
+            mdc.moveTo(-30.05058, 8.771209);
+            mdc.lineTo(-70.05058, 15.771209)
+            mdc.moveTo(70.0, 80.0);
+            mdc.lineTo(60.0, 110.0)
+            mdc.lineTo(30.0, 85.0)
+            mdc.moveTo(60.0, 90.0);
+            mdc.lineTo(55.0, 100.0)
+            mdc.lineTo(40.0, 85.0)
+            mdc.moveTo(-70.0, 80.0);
+            mdc.lineTo(-60.0, 110.0)
+            mdc.lineTo(-30.0, 85.0)
+            mdc.moveTo(-60.0, 90.0);
+            mdc.lineTo(-55.0, 100.0)
+            mdc.lineTo(-40.0, 85.0)
+            mdc.stroke();
+            mdc.restore();
+
+            mdc.save();
+            mdc.translate(170.0, 75.0); // center of window
+            //        mdc.rotate(fl);
+            //        var scale = flag.size * (1 + Math.sin(flag.angle + angle));
+            mdc.scale(1.0, 1.0);
+            mdc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+            mdc.fillRect(-20.0, -20.0, 60.0, 40.0);
+            mdc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+            mdc.fillRect(-20.0, -20.0, 17.0, 17.0);
+            mdc.fillRect(-20.0, 3.0, 17.0, 17.0);
+            mdc.fillRect(3.0, -20.0, 37.0, 17.0);
+            mdc.fillRect(3.0, 3.0, 37.0, 17.0);
+            mdc.restore();
+
+            mdc.save();
+            var s = 5;
+            mdc.translate(285.0, 75.0); // center of window
+            mdc.scale(1.0, 1.0);
+            mdc.fillStyle = "RED";
+            mdc.fillRect(-4 * s, -6 * s, 8 * s, 2 * s);
+            mdc.fillRect(-5 * s, -5 * s, 10 * s, 9 * s);
+            var xx = - 6 * s;
+            mdc.fillRect(xx, 2 * s, 4 * s, 5 * s);
+            mdc.fillRect(xx + 6 * s, 2 * s, s * 4, s * 5);
+            mdc.fillStyle = "WHITE";
+            mdc.fillRect(-3 * s, -4 * s, 2 * s, 4 * s);
+            mdc.fillRect(1 * s, -4 * s, 2 * s, 4 * s);
+            mdc.fillStyle = "BLACK";
+            mdc.fillRect(-3 * s, -2 * s, s, 2 * s);
+            mdc.fillRect(1 * s, -2 * s, s, 2 * s);
+            mdc.restore();
+        }
+    }
 
     /***********************************
     // main - program starts here !!!!!!
@@ -158,8 +302,14 @@
     const width = canvas.width = window.innerWidth;
     const height = canvas.height = window.innerHeight;
     const dc = canvas.getContext("2d");
+    var menucanvas = [];
+    var currentmenu = 0;
 
     //    c.clearRect(0, 0, 1920, 1080);
+    initMenuCanvas();
+    canvas.addEventListener("mousedown", mouseDown);
+    canvas.addEventListener("mouseup", mouseUp);
+    canvas.addEventListener("mousemove", mouseMove);
     window.setInterval(kisserloop, 20);
 
 
