@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Flag</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            background: rgb(0, 0, 0);
+            border: 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas></canvas>
+</body>
+<script>
+    var statemachine = 0;
+    var star = [];
+    var pos = {
+        x: 0,
+        xoff: 0,
+        y: 0,
+        a: 0,
+        i: 0,
+        da: 0.02,
+    };
+
+    function initStar(i, c) {
+        var angle = 2 * Math.PI * Math.random();
+        var velocity = 3 * Math.random();
+        star[i] = {
+            x: pos.x,
+            y: pos.y,
+            dx: velocity * Math.cos(angle),
+            dy: velocity * Math.sin(angle),
+            count: 50 * Math.random(),
+            dead: c,
+        };
+    }
+
+    function loop() {
+        dc.clearRect(0, 0, width, height);
+
+        switch (statemachine) {
+            case 0:
+                star = [];
+                for (var i = 0; i < 50; i++) {
+                    initStar(i, true);
+                }
+                pos.i = -470;
+                pos.xoff = width * 0.8 * Math.random();
+                statemachine = 1;
+                break;
+            case 1:
+                for (var i = 0; i < star.length; i++) {
+
+                    star[i].count--;
+                    if (star[i].count > 0) {
+                        star[i].x += star[i].dx;
+                        star[i].y += star[i].dy;
+                    }
+                    else {
+                        pos.x = pos.xoff - pos.i;
+                        pos.y = height * 0.2 + (pos.i * pos.i) / 150;
+                        pos.i++;
+                        initStar(i, false);
+                    }
+                }
+                if (pos.i > -200) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // boom
+                star = [];
+                for (var i = 0; i < 250; i++) {
+                    initStar(i, false);
+                    star[i].dcount = 0.1 + 0.2 * Math.random();
+                }
+                statemachine = 3;
+                break;
+            case 3:
+                var alive = 0;
+                for (var i = 0; i < star.length; i++) {
+                    if (!star[i].dead) {
+                        star[i].count -= star[i].dcount;
+                        alive++;
+                        if (star[i].count > 0) {
+                            star[i].x += star[i].dx;
+                            star[i].y += star[i].dy;
+                            star[i].dy += 0.01;
+                            star[i].dx *= 0.999;
+                        }
+                        else {
+                            star[i].dead = true;
+                        }
+                    }
+                }
+                if (alive == 0){
+                    statemachine = 0;
+                }
+                break;
+            default:
+        }
+
+        dc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+        for (var i = 0; i < star.length; i++) {
+            if (!star[i].dead) {
+                dc.fillRect(star[i].x, star[i].y, star[i].count / 2, star[i].count / 2);
+            }
+        }
+
+
+        /*        dc.save();
+                dc.translate(flag.x, flag.y); // center of window
+                dc.rotate(flag.mangle);
+                var scale = flag.size * (1 + Math.sin(flag.angle + angle));
+                dc.scale(scale, scale);
+                dc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+                dc.fillRect(-20.0, -20.0, 60.0, 40.0);
+                dc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+                dc.fillRect(-20.0, -20.0, 17.0, 17.0);
+                dc.fillRect(-20.0, 3.0, 17.0, 17.0);
+                dc.fillRect(3.0, -20.0, 37.0, 17.0);
+                dc.fillRect(3.0, 3.0, 37.0, 17.0);
+                dc.restore();*/
+    }
+
+
+    /***********************************
+    // main - program starts here !!!!!!
+    ************************************/
+    const canvas = document.querySelector("canvas");
+    const width = canvas.width = window.innerWidth;
+    const height = canvas.height = window.innerHeight;
+    const dc = canvas.getContext("2d");
+
+    window.setInterval(loop, 20);
+
+
+</script>
+
+</html>

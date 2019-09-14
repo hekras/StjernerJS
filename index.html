@@ -23,6 +23,104 @@
     var flag = {};
     var alien = {};
     var love = {};
+    var statemachine = 0;
+    var star = [];
+
+    var pos = {
+        x: 0,
+        xoff: 0,
+        y: 0,
+        a: 0,
+        i: 0,
+        da: 0.02,
+    };
+
+    function initStar(i, c) {
+        var angle = 2 * Math.PI * Math.random();
+        var velocity = 3 * Math.random();
+        star[i] = {
+            x: pos.x,
+            y: pos.y,
+            dx: velocity * Math.cos(angle),
+            dy: velocity * Math.sin(angle),
+            count: 50 * Math.random(),
+            dead: c,
+        };
+    }
+
+    function animateFirework() {
+        dc.clearRect(0, 0, width, height);
+
+        switch (statemachine) {
+            case 0:
+                star = [];
+                for (var i = 0; i < 50; i++) {
+                    initStar(i, true);
+                }
+                pos.i = -470;
+                pos.xoff = width * 0.8 * Math.random();
+                statemachine = 1;
+                break;
+            case 1:
+                for (var i = 0; i < star.length; i++) {
+
+                    star[i].count--;
+                    if (star[i].count > 0) {
+                        star[i].x += star[i].dx;
+                        star[i].y += star[i].dy;
+                    }
+                    else {
+                        pos.x = pos.xoff - pos.i;
+                        pos.y = height * 0.2 + (pos.i * pos.i) / 150;
+                        pos.i++;
+                        initStar(i, false);
+                    }
+                }
+                if (pos.i > -200) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // boom
+                star = [];
+                for (var i = 0; i < 250; i++) {
+                    initStar(i, false);
+                    star[i].dcount = 0.1 + 0.2 * Math.random();
+                }
+                statemachine = 3;
+                break;
+            case 3:
+                var alive = 0;
+                for (var i = 0; i < star.length; i++) {
+                    if (!star[i].dead) {
+                        star[i].count -= star[i].dcount;
+                        alive++;
+                        if (star[i].count > 0) {
+                            star[i].x += star[i].dx;
+                            star[i].y += star[i].dy;
+                            star[i].dy += 0.01;
+                            star[i].dx *= 0.999;
+                        }
+                        else {
+                            star[i].dead = true;
+                        }
+                    }
+                }
+                if (alive == 0){
+                    statemachine = 0;
+                }
+                break;
+            default:
+        }
+
+        dc.fillStyle = "#FFFF00"; 
+        for (var i = 0; i < star.length; i++) {
+            if (!star[i].dead) {
+                dc.fillRect(star[i].x, star[i].y, star[i].count / 2, star[i].count / 2);
+            }
+        }
+    }
+
+
 
     function animateLove() {
         switch (statemachine) {
@@ -353,6 +451,9 @@
             case 3: //Love
                 animateLove();
                 break;
+            case 4: //Firework
+                animateFirework();
+                break;
 
         }
 
@@ -368,7 +469,7 @@
             var xxx = e.clientX;
             var yyy = e.clientY;
 
-            for (var i = 0; i < 4; i++) {
+            for (var i = 0; i < 5; i++) {
                 var cx = 75 + 105 * i;
                 var cy = 75;
                 var dx = xxx - cx;
@@ -397,7 +498,7 @@
         var yyy = e.clientY;
         var cursor = "default";
         if (menutimeout < activitytimer) {
-            for (var i = 0; i < 4; i++) {
+            for (var i = 0; i < 5; i++) {
                 var cx = 75 + 105 * i;
                 var cy = 75;
                 var dx = xxx - cx;
@@ -414,7 +515,7 @@
     }
 
     function initMenuCanvas() {
-        var menuItems = 4;
+        var menuItems = 5;
 
         for (var j = 0; j < menuItems; j++) {
             menucanvas[j] = document.createElement("canvas");
@@ -434,7 +535,7 @@
             }
             mdc.fillStyle = "white";
             mdc.font = "14px arial";
-            mdc.fillText("Last update: 09-11-2019 / Handmixer", 10, 17);
+            mdc.fillText("Last update: September 13. 2019 / Handmixer", 10, 17);
 
             mdc.save();
             mdc.translate(75, 90);
@@ -531,7 +632,6 @@
             mdc.strokeStyle = "#FFFFFF";
             mdc.lineWidth = 1;
             mdc.beginPath();
-
             // init shape coordinates
             var dmyt = 6.0 / 60.0;
             var index = 0;
@@ -540,10 +640,19 @@
                 var y = 14 * Math.cos(myt) - 5 * Math.cos(2 * myt) - 3 * Math.cos(3 * myt) - Math.cos(4 * myt);
                 mdc.lineTo(x, y);
                 index++;
-
             }
             mdc.fill();
             mdc.stroke();
+            mdc.restore();
+
+            mdc.save();
+            mdc.translate(455.0, 80.0);
+//            mdc.rotate(Math.PI);
+//            mdc.scale(2.0, 2.0);
+            mdc.fillStyle = "#FFFF00";
+            mdc.strokeStyle = "#FFFFFF";
+            mdc.font = "18px arial"
+            mdc.fillText("Fireworks",0,0);
             mdc.restore();
 
         }
@@ -566,7 +675,8 @@
     canvas.addEventListener("mousedown", mouseDown);
     canvas.addEventListener("mouseup", mouseUp);
     canvas.addEventListener("mousemove", mouseMove);
-    window.setInterval(animateloop, 20);
+    canvas.addEventListener("mousedrag", mouseMove);
+    window.setInterval(animateloop, 1000/60);
 
 
 </script>

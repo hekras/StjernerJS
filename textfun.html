@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Flag</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            background: rgb(0, 0, 0);
+            border: 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas></canvas>
+</body>
+<script>
+    var tick = 0;
+    const dtick = 0.05;
+    var statemachine = 0;
+    var fpscounter = 0;
+    var currentfps = 0;
+    var text = [];
+
+    function fpscounterloop(){
+        currentfps = fpscounter;
+        fpscounter = 0;
+    }
+
+
+
+    function loop() {
+        fpscounter++;
+        dc.clearRect(0, 0, width, height);
+
+        dc.fillStyle = "white";
+        dc.font = "14px arial"
+        dc.fillText("fps: " + currentfps, 0, 20);
+
+        //        var s = 5;
+
+        switch (statemachine) {
+            case 0: // start the show
+                text = [];
+                for (var i = 0; i < 100; i++) {
+                    text[i] = document.createElement("canvas");
+                    text[i].width = 1000;
+                    text[i].height = 1;
+                    var tdc = text[i].getContext("2d");
+                    tdc.translate(0, -i);
+                    tdc.strokeStyle = "white";
+                    tdc.fillStyle = "red";
+                    tdc.font = "98px arial";
+                    var str = "Hello";
+                    tdc.fillText(str, 0, 98);
+                    tdc.strokeText(str, 0, 98);
+                }
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                statemachine = 1;
+                break;
+            default:
+            //                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+
+        for (var j = 1; j < 10; j++) {
+            dc.save();
+//            dc.scale(1, 2);
+            for (var i = 0; i < text.length; i++) {
+                var ii = 300 + Math.floor(20 + 200 * Math.sin(tick + i / 80 + j*0.2));
+                dc.drawImage(text[i], ii, i + 100*j);
+            }
+            dc.restore();
+        }
+
+    }
+
+
+    /***********************************
+    // main - program starts here !!!!!!
+    ************************************/
+    const canvas = document.querySelector("canvas");
+    const width = canvas.width = window.innerWidth;
+    const height = canvas.height = window.innerHeight;
+    const dc = canvas.getContext("2d");
+
+    window.setInterval(loop, 1000/60);
+    window.setInterval(fpscounterloop, 1000);
+
+
+</script>
+
+</html>
