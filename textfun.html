@@ -53,7 +53,7 @@
                     tdc.strokeStyle = "white";
                     tdc.fillStyle = "red";
                     tdc.font = "98px arial";
-                    var str = "Hello";
+                    var str = "handmixer.dk";
                     tdc.fillText(str, 0, 98);
                     tdc.strokeText(str, 0, 98);
                 }
@@ -73,7 +73,7 @@
             dc.save();
 //            dc.scale(1, 2);
             for (var i = 0; i < text.length; i++) {
-                var ii = 300 + Math.floor(20 + 200 * Math.sin(tick + i / 80 + j*0.2));
+                var ii = 300 + Math.floor(20 + 200 * Math.sin(tick + i / 200 + j*0.5));
                 dc.drawImage(text[i], ii, i + 100*j);
             }
             dc.restore();
@@ -90,7 +90,7 @@
     const height = canvas.height = window.innerHeight;
     const dc = canvas.getContext("2d");
 
-    window.setInterval(loop, 1000/60);
+    window.setInterval(loop, 100/6);
     window.setInterval(fpscounterloop, 1000);
 
 
