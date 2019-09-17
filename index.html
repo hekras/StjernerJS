@@ -105,14 +105,14 @@
                         }
                     }
                 }
-                if (alive == 0){
+                if (alive == 0) {
                     statemachine = 0;
                 }
                 break;
             default:
         }
 
-        dc.fillStyle = "#FFFF00"; 
+        dc.fillStyle = "#FFFF00";
         for (var i = 0; i < star.length; i++) {
             if (!star[i].dead) {
                 dc.fillRect(star[i].x, star[i].y, star[i].count / 2, star[i].count / 2);
@@ -435,6 +435,49 @@
         dc.restore();
     }
 
+    function animateText() {
+        dc.clearRect(0, 0, width, height);
+
+        switch (statemachine) {
+            case 0: // start the show
+                text = [];
+                for (var i = 0; i < 100; i++) {
+                    text[i] = document.createElement("canvas");
+                    text[i].width = 1000;
+                    text[i].height = 1;
+                    var tdc = text[i].getContext("2d");
+                    tdc.translate(0, -i);
+                    tdc.strokeStyle = "white";
+                    tdc.fillStyle = "red";
+                    tdc.font = "98px arial";
+                    var str = "handmixer.dk";
+                    tdc.fillText(str, 0, 98);
+                    tdc.strokeText(str, 0, 98);
+                }
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                statemachine = 1;
+                break;
+            default:
+            //                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+
+        for (var j = 1; j < 10; j++) {
+            dc.save();
+            //            dc.scale(1, 2);
+            for (var i = 0; i < text.length; i++) {
+                var ii = 300 + Math.floor(20 + 200 * Math.sin(tick + i / 200 + j * 0.5));
+                dc.drawImage(text[i], ii, i + 100 * j);
+            }
+            dc.restore();
+        }
+
+    }
+
 
     function animateloop() {
         dc.clearRect(0, 0, width, height);
@@ -454,7 +497,12 @@
             case 4: //Firework
                 animateFirework();
                 break;
-
+            case 5: //Textfun
+                animateText();
+                break;
+            case 6: // Calendar
+                window.location = "index.php"
+                break;
         }
 
         if (menutimeout < activitytimer) {
@@ -469,7 +517,7 @@
             var xxx = e.clientX;
             var yyy = e.clientY;
 
-            for (var i = 0; i < 5; i++) {
+            for (var i = 0; i < 7; i++) {
                 var cx = 75 + 105 * i;
                 var cy = 75;
                 var dx = xxx - cx;
@@ -498,7 +546,7 @@
         var yyy = e.clientY;
         var cursor = "default";
         if (menutimeout < activitytimer) {
-            for (var i = 0; i < 5; i++) {
+            for (var i = 0; i < 7; i++) {
                 var cx = 75 + 105 * i;
                 var cy = 75;
                 var dx = xxx - cx;
@@ -515,7 +563,7 @@
     }
 
     function initMenuCanvas() {
-        var menuItems = 5;
+        var menuItems = 7;
 
         for (var j = 0; j < menuItems; j++) {
             menucanvas[j] = document.createElement("canvas");
@@ -535,7 +583,7 @@
             }
             mdc.fillStyle = "white";
             mdc.font = "14px arial";
-            mdc.fillText("Last update: September 13. 2019 / Handmixer", 10, 17);
+            mdc.fillText("Last update: September 16. 2019 / Handmixer", 10, 17);
 
             mdc.save();
             mdc.translate(75, 90);
@@ -647,12 +695,22 @@
 
             mdc.save();
             mdc.translate(455.0, 80.0);
-//            mdc.rotate(Math.PI);
-//            mdc.scale(2.0, 2.0);
+            //            mdc.rotate(Math.PI);
+            //            mdc.scale(2.0, 2.0);
             mdc.fillStyle = "#FFFF00";
             mdc.strokeStyle = "#FFFFFF";
             mdc.font = "18px arial"
-            mdc.fillText("Fireworks",0,0);
+            mdc.fillText("Fireworks", 0, 0);
+            mdc.restore();
+
+            mdc.save();
+            mdc.translate(570.0, 80.0);
+            //            mdc.rotate(Math.PI);
+            //            mdc.scale(2.0, 2.0);
+            mdc.fillStyle = "#FFFF00";
+            mdc.strokeStyle = "#FFFFFF";
+            mdc.font = "18px arial"
+            mdc.fillText("Textfun", 0, 0);
             mdc.restore();
 
         }
@@ -676,7 +734,7 @@
     canvas.addEventListener("mouseup", mouseUp);
     canvas.addEventListener("mousemove", mouseMove);
     canvas.addEventListener("mousedrag", mouseMove);
-    window.setInterval(animateloop, 1000/60);
+    window.setInterval(animateloop, 1000 / 60);
 
 
 </script>
