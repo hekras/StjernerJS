@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Handmixer</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            background: rgb(0, 0, 0);
+            border: 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas></canvas>
+</body>
+<script>
+    var tick = 0;
+    const dtick = 0.1;
+    var kisser = {};
+    var flag = {};
+    var alien = {};
+    var love = {};
+    var statemachine = 0;
+    var star = [];
+    var alpha = "rgba(0, 0, 0, 1.0)";
+
+    var pos = {
+        x: 0,
+        xoff: 0,
+        y: 0,
+        a: 0,
+        i: 0,
+        da: 0.02,
+    };
+
+    function initStar(i, c) {
+        var angle = 2 * Math.PI * Math.random();
+        var velocity = 3 * Math.random();
+        star[i] = {
+            x: pos.x,
+            y: pos.y,
+            dx: velocity * Math.cos(angle),
+            dy: velocity * Math.sin(angle),
+            count: 50 * Math.random(),
+            dead: c,
+        };
+    }
+
+    function animateFirework() {
+        dc.fillStyle = alpha;
+        dc.fillRect(0, 0, width, height);
+
+        switch (statemachine) {
+            case 0:
+                star = [];
+                for (var i = 0; i < 50; i++) {
+                    initStar(i, true);
+                }
+                pos.i = -470;
+                pos.xoff = width * 0.8 * Math.random();
+                alpha = "rgba(0, 0, 0, 1.0)";
+                statemachine = 1;
+                break;
+            case 1:
+                for (var i = 0; i < star.length; i++) {
+
+                    star[i].count--;
+                    if (star[i].count > 0) {
+                        star[i].x += star[i].dx;
+                        star[i].y += star[i].dy;
+                    }
+                    else {
+                        pos.x = pos.xoff - pos.i;
+                        pos.y = height * 0.2 + (pos.i * pos.i) / 150;
+                        pos.i++;
+                        initStar(i, false);
+                    }
+                }
+                if (pos.i > -200) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // boom
+                star = [];
+                for (var i = 0; i < 250; i++) {
+                    initStar(i, false);
+                    star[i].dcount = 0.1 + 0.2 * Math.random();
+                }
+                alpha = "rgba(0, 0, 0, 0.05)";
+                statemachine = 3;
+                break;
+            case 3:
+                var alive = 0;
+                for (var i = 0; i < star.length; i++) {
+                    if (!star[i].dead) {
+                        star[i].count -= star[i].dcount;
+                        alive++;
+                        if (star[i].count > 0) {
+                            star[i].x += star[i].dx;
+                            star[i].y += star[i].dy;
+                            star[i].dy += 0.01;
+                            star[i].dx *= 0.999;
+                        }
+                        else {
+                            star[i].dead = true;
+                        }
+                    }
+                }
+                if (alive == 0) {
+                    statemachine = 0;
+                }
+                break;
+            default:
+        }
+
+        dc.fillStyle = "#FFFF00";
+        for (var i = 0; i < star.length; i++) {
+            if (!star[i].dead) {
+                dc.fillRect(star[i].x, star[i].y, star[i].count / 2, star[i].count / 2);
+            }
+        }
+    }
+
+
+
+    function animateLove() {
+        dc.clearRect(0, 0, width, height);
+        switch (statemachine) {
+            case 0: // start the show
+                love = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 0.1,
+                    size: 20.0,
+                    maxscale: 10.0,
+                    angle: 0.0,
+                    targetangle: 0.5,
+                    dangle: 0.015,
+                    mangle: 3.1457,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                love.scale *= 1.01;
+                if (love.scale > love.maxscale) {
+                    statemachine = 1;
+                }
+                break;
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+        dc.save();
+        dc.translate(love.x, love.y); // center of window
+        dc.rotate(love.mangle);
+        var scale = love.size * (1 + Math.sin(love.angle + angle));
+        dc.scale(scale, scale);
+        dc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+        dc.strokeStyle = "#FFFFFF"; //gc.setFill(Color.RED); 
+        dc.lineWidth = 1;
+        dc.beginPath();
+
+        // init shape coordinates
+        var dmyt = 6.0 / 60.0;
+        var index = 0;
+        for (var myt = -3.5; myt < 3; myt += dmyt) {
+            var x = 18 * Math.pow(Math.sin(myt), 3);
+            var y = 14 * Math.cos(myt) - 5 * Math.cos(2 * myt) - 3 * Math.cos(3 * myt) - Math.cos(4 * myt);
+            dc.lineTo(x, y);
+            index++;
+
+        }
+        dc.fill();
+        dc.stroke();
+        dc.restore();
+        love.angle += love.dangle;
+        love.mangle += love.dangle;
+    }
+
+    function animateAlien() {
+        dc.clearRect(0, 0, width, height);
+        var s = 5;
+
+        switch (statemachine) {
+            case 0: // start the show
+                alien = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 0.1,
+                    maxscale: 10.0,
+                    angle: 0.0,
+                    targetangle: 0.5,
+                    dangle: 0.015,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                alien.scale *= 1.01;
+                if (alien.scale > alien.maxscale) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // twist a little
+                alien.angle += alien.dangle;
+                if (alien.angle > alien.targetangle) {
+                    alien.targetangle = - 0.5,
+                        statemachine = 3;
+                }
+                break;
+            case 3: // twist a little
+                alien.angle -= alien.dangle;
+                if (alien.angle < alien.targetangle) {
+                    alien.targetangle = 0.5,
+                        statemachine = 4;
+                }
+                break;
+            case 4: // twist a little
+                alien.angle += alien.dangle;
+                if (alien.angle > alien.targetangle) {
+                    alien.targetangle = - 0.5,
+                        statemachine = 5;
+                }
+                break;
+            case 5: // twist a little
+                alien.angle -= alien.dangle;
+                if (alien.angle < alien.targetangle) {
+                    alien.targetangle = 0.5,
+                        statemachine = 6;
+                    alien.maxscale = 100;
+
+                }
+                break;
+            case 6: // increase size and move out of view
+                alien.scale *= 1.01;
+                alien.angle -= alien.dangle;
+                alien.x += alien.scale * Math.cos(alien.angle);
+                alien.y += alien.scale * Math.sin(alien.angle);
+                if (alien.scale > alien.maxscale) {
+                    statemachine = 0;
+                }
+                break;
+
+            default:
+            //                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+        var size = tick / 10;
+
+        dc.save();
+        var s = 5;
+        dc.translate(alien.x, alien.y); // center of window
+        var scale = alien.size + Math.sin(alien.angle);
+        dc.scale(alien.scale, alien.scale);
+        dc.rotate(alien.angle);
+        dc.fillStyle = "RED";
+        dc.fillRect(-4 * s, -6 * s, 8 * s, 2 * s);
+        dc.fillRect(-5 * s, -5 * s, 10 * s, 9 * s);
+        var xx = s * 3 * Math.sin(tick) - 5 * s;
+        dc.fillRect(xx, 2 * s, 4 * s, 5 * s);
+        dc.fillRect(xx + 6 * s, 2 * s, s * 4, s * 5);
+        dc.fillStyle = "WHITE";
+        dc.fillRect(-3 * s, -4 * s, 2 * s, 4 * s);
+        dc.fillRect(1 * s, -4 * s, 2 * s, 4 * s);
+        dc.fillStyle = "BLACK";
+        dc.fillRect(-3 * s, -2 * s, s, 2 * s);
+        dc.fillRect(1 * s, -2 * s, s, 2 * s);
+        dc.restore();
+    }
+
+    function animateFlag() {
+        dc.clearRect(0, 0, width, height);
+        switch (statemachine) {
+            case 0: // start the show
+                flag = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 10,
+                    size: 20.0,
+                    maxscale: 0.1,
+                    angle: 0.0,
+                    targetangle: 0.5,
+                    dangle: 0.015,
+                    mangle: 3.1457,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                flag.scale *= 1.01;
+                if (flag.scale > flag.maxscale) {
+                    statemachine = 1;
+                }
+                break;
+            default:
+            //                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+
+        dc.save();
+        dc.translate(flag.x, flag.y); // center of window
+        dc.rotate(flag.mangle);
+        var scale = flag.size * (1 + Math.sin(flag.angle + angle));
+        dc.scale(scale, scale);
+        dc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+        dc.fillRect(-20.0, -20.0, 60.0, 40.0);
+        dc.fillStyle = "#FF0000"; //gc.setFill(Color.RED); 
+        dc.fillRect(-20.0, -20.0, 17.0, 17.0);
+        dc.fillRect(-20.0, 3.0, 17.0, 17.0);
+        dc.fillRect(3.0, -20.0, 37.0, 17.0);
+        dc.fillRect(3.0, 3.0, 37.0, 17.0);
+        dc.restore();
+        flag.angle += flag.dangle;
+        flag.mangle += flag.dangle;
+    }
+
+    function animateKisser() {
+        dc.clearRect(0, 0, width, height);
+        switch (statemachine) {
+            case 0: // start the show
+                kisser = {
+                    x: width / 2,
+                    y: height / 2,
+                    scale: 0.1,
+                    maxscale: 10.0,
+                    angle: Math.PI,
+                    targetangle: Math.PI + 0.5,
+                    dangle: 0.02,
+                };
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                kisser.scale *= 1.01;
+                if (kisser.scale > kisser.maxscale) {
+                    statemachine = 2;
+                }
+                break;
+            case 2: // twist a little
+                kisser.angle += kisser.dangle;
+                if (kisser.angle > kisser.targetangle) {
+                    kisser.targetangle = Math.PI - 0.5,
+                        statemachine = 3;
+                }
+                break;
+            case 3: // twist a little
+                kisser.angle -= kisser.dangle;
+                if (kisser.angle < kisser.targetangle) {
+                    kisser.targetangle = Math.PI + 0.5,
+                        statemachine = 4;
+                }
+                break;
+            case 4: // twist a little
+                kisser.angle += kisser.dangle;
+                if (kisser.angle > kisser.targetangle) {
+                    kisser.targetangle = Math.PI - 0.5,
+                        statemachine = 5;
+                }
+                break;
+            case 5: // twist a little
+                kisser.angle -= kisser.dangle;
+                if (kisser.angle < kisser.targetangle) {
+                    kisser.targetangle = Math.PI + 0.5,
+                        statemachine = 6;
+                    kisser.maxscale = 100;
+
+                }
+                break;
+            case 6: // increase size and move out of view
+                kisser.scale *= 1.01;
+                kisser.angle += kisser.dangle;
+                kisser.x += kisser.scale * Math.cos(kisser.angle);
+                kisser.y += kisser.scale * Math.sin(kisser.angle);
+                if (kisser.scale > kisser.maxscale) {
+                    statemachine = 0;
+                }
+                break;
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+        var size = tick / 10;
+
+        dc.save();
+        dc.translate(kisser.x, kisser.y);
+        dc.rotate(kisser.angle);
+        dc.scale(kisser.scale, kisser.scale);
+        dc.strokeStyle = "YELLOW";
+        dc.scale(0.1, 0.1);
+        dc.lineWidth = 3;
+        dc.beginPath();
+        dc.lineTo(-0.05058, -16.771209);
+        dc.lineTo(-1.40512, -14.905512);
+        dc.lineTo(-5.54724, -11.601373);
+        dc.lineTo(-11.57766, -7.096828);
+        dc.lineTo(-16.62438, -1.209467);
+        dc.lineTo(-17.86506, 5.612500);
+        dc.lineTo(-14.57386, 11.36275);
+        dc.lineTo(-8.65170, 13.44752);
+        dc.lineTo(-3.24035, 11.16190);
+        dc.lineTo(-0.46455, 7.02084);
+        dc.lineTo(0.00000, 5.00000);
+        dc.lineTo(0.46455, 7.02084);
+        dc.lineTo(3.24035, 11.16190);
+        dc.lineTo(8.65170, 13.44752);
+        dc.lineTo(14.57386, 11.36275);
+        dc.lineTo(17.86506, 5.61250);
+        dc.lineTo(16.62438, -1.20946);
+        dc.lineTo(11.57766, -7.09682);
+        dc.lineTo(5.54724, -11.60137);
+        dc.lineTo(1.40512, -14.90551);
+        dc.lineTo(0.05058, -16.77120);
+        dc.scale(2, 2);
+        dc.moveTo(-30.05058, -20.771209);
+        dc.lineTo(-70.05058, -36.771209)
+        dc.moveTo(30.05058, -20.771209);
+        dc.lineTo(70.05058, -36.771209)
+        dc.moveTo(-30.05058, -6.771209);
+        dc.lineTo(-70.05058, -10.771209)
+        dc.moveTo(30.05058, -6.771209);
+        dc.lineTo(70.05058, -10.771209)
+        dc.moveTo(30.05058, 8.771209);
+        dc.lineTo(70.05058, 15.771209)
+        dc.moveTo(-30.05058, 8.771209);
+        dc.lineTo(-70.05058, 15.771209)
+        dc.moveTo(70.0, 80.0);
+        dc.lineTo(60.0, 110.0)
+        dc.lineTo(30.0, 85.0)
+        dc.moveTo(60.0, 90.0);
+        dc.lineTo(55.0, 100.0)
+        dc.lineTo(40.0, 85.0)
+        dc.moveTo(-70.0, 80.0);
+        dc.lineTo(-60.0, 110.0)
+        dc.lineTo(-30.0, 85.0)
+        dc.moveTo(-60.0, 90.0);
+        dc.lineTo(-55.0, 100.0)
+        dc.lineTo(-40.0, 85.0)
+        dc.stroke();
+        dc.restore();
+    }
+
+    function animateText() {
+        dc.clearRect(0, 0, width, height);
+
+        switch (statemachine) {
+            case 0: // start the show
+                text = [];
+                for (var i = 0; i < 100; i++) {
+                    text[i] = document.createElement("canvas");
+                    text[i].width = 1000;
+                    text[i].height = 1;
+                    var tdc = text[i].getContext("2d");
+                    tdc.translate(0, -i);
+                    tdc.strokeStyle = "white";
+                    tdc.fillStyle = "red";
+                    tdc.font = "98px arial";
+                    var str = "handmixer.dk";
+                    tdc.fillText(str, 0, 98);
+                    tdc.strokeText(str, 0, 98);
+                }
+                statemachine = 1;
+                break;
+            case 1: // increase size
+                statemachine = 1;
+                break;
+            default:
+            //                console.log("statemachine=" + statemachine);
+        }
+
+        tick += dtick;
+        var angle = tick / 2;
+
+        for (var j = 1; j < 10; j++) {
+            dc.save();
+            //            dc.scale(1, 2);
+            for (var i = 0; i < text.length; i++) {
+                var ii = 300 + Math.floor(20 + 200 * Math.sin(tick + i / 200 + j * 0.5));
+                dc.drawImage(text[i], ii, i + 100 * j);
+            }
+            dc.restore();
+        }
+
+    }
+
+    function animateCalendar() {
+        dc.clearRect(0, 0, width, height);
+        window.location.href = "http://handmixer.dk/index.php";
+
+    }
+
+    function animateloop() {
+//        dc.clearRect(0, 0, width, height);
+        switch (currentmenu) {
+            case 0: //kisser
+                animateKisser();
+                break;
+            case 1: //Flag
+                animateFlag();
+                break;
+            case 2: //Alien
+                animateAlien();
+                break;
+            case 3: //Love
+                animateLove();
+                break;
+            case 4: //Firework
+                animateFirework();
+                break;
+            case 5: //Textfun
+                animateText();
+                break;
+            case 6: // Calendar
+                animateCalendar();
+                break;
+        }
+
+        if (menutimeout < activitytimer) {
+            dc.drawImage(menucanvas[currentmenu], 0, 0);
+        }
+        menutimeout++;
+    }
+
+    function mouseDown(e) {
+
+        if (menutimeout < activitytimer) {
+            var xxx = e.clientX;
+            var yyy = e.clientY;
+
+            for (var i = 0; i < 6; i++) {
+                var cx = 75 + 105 * i;
+                var cy = 75;
+                var dx = xxx - cx;
+                var dy = yyy - cy;
+                var dist2 = dx * dx + dy * dy;
+
+                if (dist2 < 2800) {
+                    if (i != currentmenu) {
+                        currentmenu = i;
+                        statemachine = 0;
+                    }
+                    break;
+                }
+            }
+        }
+        menutimeout = 0;
+    }
+
+    function mouseUp(e) {
+        menutimeout = 0;
+    }
+
+    function mouseMove(e) {
+        menutimeout = 0;
+        var xxx = e.clientX;
+        var yyy = e.clientY;
+        var cursor = "default";
+        if (menutimeout < activitytimer) {
+            for (var i = 0; i < 6; i++) {
+                var cx = 75 + 105 * i;
+                var cy = 75;
+                var dx = xxx - cx;
+                var dy = yyy - cy;
+                var dist2 = dx * dx + dy * dy;
+
+                if (dist2 < 2800) {
+                    cursor = "pointer";
+                    break;
+                }
+            }
+        }
+        canvas.style.cursor = cursor;
+    }
+
+    function initMenuCanvas() {
+        var menuItems = 6;
+
+        for (var j = 0; j < menuItems; j++) {
+            menucanvas[j] = document.createElement("canvas");
+            menucanvas[j].width = 1500;
+            menucanvas[j].height = 135;
+            var mdc = menucanvas[j].getContext("2d");
+
+            mdc.strokeStyle = "gray";
+            mdc.fillStyle = "rgb(100,0,0)";
+            for (var i = 0; i < menuItems; i++) {
+                mdc.beginPath();
+                mdc.arc(75 + 105 * i, 75, 50, 0, 2 * Math.PI);
+                if (i == j) {
+                    mdc.fill();
+                }
+                mdc.stroke();
+            }
+            mdc.fillStyle = "white";
+            mdc.font = "14px arial";
+            mdc.fillText("Last update: September 18. 2019 / Handmixer", 10, 17);
+
+            mdc.save();
+            mdc.translate(75, 90);
+            mdc.rotate(Math.PI);
+            mdc.scale(1.0, 1.0);
+            mdc.strokeStyle = "YELLOW";
+            mdc.scale(0.2, 0.2);
+            mdc.lineWidth = 3;
+            mdc.beginPath();
+            mdc.lineTo(-0.05058, -16.771209);
+            mdc.lineTo(-1.40512, -14.905512);
+            mdc.lineTo(-5.54724, -11.601373);
+            mdc.lineTo(-11.57766, -7.096828);
+            mdc.lineTo(-16.62438, -1.209467);
+            mdc.lineTo(-17.86506, 5.612500);
+            mdc.lineTo(-14.57386, 11.36275);
+            mdc.lineTo(-8.65170, 13.44752);
+            mdc.lineTo(-3.24035, 11.16190);
+            mdc.lineTo(-0.46455, 7.02084);
+            mdc.lineTo(0.00000, 5.00000);
+            mdc.lineTo(0.46455, 7.02084);
+            mdc.lineTo(3.24035, 11.16190);
+            mdc.lineTo(8.65170, 13.44752);
+            mdc.lineTo(14.57386, 11.36275);
+            mdc.lineTo(17.86506, 5.61250);
+            mdc.lineTo(16.62438, -1.20946);
+            mdc.lineTo(11.57766, -7.09682);
+            mdc.lineTo(5.54724, -11.60137);
+            mdc.lineTo(1.40512, -14.90551);
+            mdc.lineTo(0.05058, -16.77120);
+            mdc.scale(2, 2);
+            mdc.moveTo(-30.05058, -20.771209);
+            mdc.lineTo(-70.05058, -36.771209)
+            mdc.moveTo(30.05058, -20.771209);
+            mdc.lineTo(70.05058, -36.771209)
+            mdc.moveTo(-30.05058, -6.771209);
+            mdc.lineTo(-70.05058, -10.771209)
+            mdc.moveTo(30.05058, -6.771209);
+            mdc.lineTo(70.05058, -10.771209)
+            mdc.moveTo(30.05058, 8.771209);
+            mdc.lineTo(70.05058, 15.771209)
+            mdc.moveTo(-30.05058, 8.771209);
+            mdc.lineTo(-70.05058, 15.771209)
+            mdc.moveTo(70.0, 80.0);
+            mdc.lineTo(60.0, 110.0)
+            mdc.lineTo(30.0, 85.0)
+            mdc.moveTo(60.0, 90.0);
+            mdc.lineTo(55.0, 100.0)
+            mdc.lineTo(40.0, 85.0)
+            mdc.moveTo(-70.0, 80.0);
+            mdc.lineTo(-60.0, 110.0)
+            mdc.lineTo(-30.0, 85.0)
+            mdc.moveTo(-60.0, 90.0);
+            mdc.lineTo(-55.0, 100.0)
+            mdc.lineTo(-40.0, 85.0)
+            mdc.stroke();
+            mdc.restore();
+
+            mdc.save();
+            mdc.translate(170.0, 75.0);
+            mdc.scale(1.0, 1.0);
+            mdc.fillStyle = "#FFFFFF";
+            mdc.fillRect(-20.0, -20.0, 60.0, 40.0);
+            mdc.fillStyle = "#FF0000";
+            mdc.fillRect(-20.0, -20.0, 17.0, 17.0);
+            mdc.fillRect(-20.0, 3.0, 17.0, 17.0);
+            mdc.fillRect(3.0, -20.0, 37.0, 17.0);
+            mdc.fillRect(3.0, 3.0, 37.0, 17.0);
+            mdc.restore();
+
+            mdc.save();
+            var s = 5;
+            mdc.translate(285.0, 75.0);
+            mdc.scale(1.0, 1.0);
+            mdc.fillStyle = "RED";
+            mdc.fillRect(-4 * s, -6 * s, 8 * s, 2 * s);
+            mdc.fillRect(-5 * s, -5 * s, 10 * s, 9 * s);
+            var xx = - 6 * s;
+            mdc.fillRect(xx, 2 * s, 4 * s, 5 * s);
+            mdc.fillRect(xx + 6 * s, 2 * s, s * 4, s * 5);
+            mdc.fillStyle = "WHITE";
+            mdc.fillRect(-3 * s, -4 * s, 2 * s, 4 * s);
+            mdc.fillRect(1 * s, -4 * s, 2 * s, 4 * s);
+            mdc.fillStyle = "BLACK";
+            mdc.fillRect(-3 * s, -2 * s, s, 2 * s);
+            mdc.fillRect(1 * s, -2 * s, s, 2 * s);
+            mdc.restore();
+
+            mdc.save();
+            mdc.translate(390.0, 75.0);
+            mdc.rotate(Math.PI);
+            mdc.scale(2.0, 2.0);
+            mdc.fillStyle = "#FF0000";
+            mdc.strokeStyle = "#FFFFFF";
+            mdc.lineWidth = 1;
+            mdc.beginPath();
+            // init shape coordinates
+            var dmyt = 6.0 / 60.0;
+            var index = 0;
+            for (var myt = -3.5; myt < 3; myt += dmyt) {
+                var x = 18 * Math.pow(Math.sin(myt), 3);
+                var y = 14 * Math.cos(myt) - 5 * Math.cos(2 * myt) - 3 * Math.cos(3 * myt) - Math.cos(4 * myt);
+                mdc.lineTo(x, y);
+                index++;
+            }
+            mdc.fill();
+            mdc.stroke();
+            mdc.restore();
+
+            mdc.save();
+            mdc.translate(455.0, 80.0);
+            //            mdc.rotate(Math.PI);
+            //            mdc.scale(2.0, 2.0);
+            mdc.fillStyle = "#FFFF00";
+            mdc.strokeStyle = "#FFFFFF";
+            mdc.font = "18px arial"
+            mdc.fillText("Fireworks", 0, 0);
+            mdc.restore();
+
+            mdc.save();
+            mdc.translate(570.0, 80.0);
+            //            mdc.rotate(Math.PI);
+            //            mdc.scale(2.0, 2.0);
+            mdc.fillStyle = "#FFFF00";
+            mdc.strokeStyle = "#FFFFFF";
+            mdc.font = "18px arial"
+            mdc.fillText("Textfun", 0, 0);
+            mdc.restore();
+
+        }
+    }
+
+    /***********************************
+    // main - program starts here !!!!!!
+    ************************************/
+    const canvas = document.querySelector("canvas");
+    const width = canvas.width = window.innerWidth;
+    const height = canvas.height = window.innerHeight;
+    const dc = canvas.getContext("2d");
+    var menucanvas = [];
+    var currentmenu = 0;
+    var statemachine = 0;
+    var menutimeout = 1000;
+    var activitytimer = 100;
+
+    initMenuCanvas();
+    canvas.addEventListener("mousedown", mouseDown);
+    canvas.addEventListener("mouseup", mouseUp);
+    canvas.addEventListener("mousemove", mouseMove);
+    canvas.addEventListener("mousedrag", mouseMove);
+    window.setInterval(animateloop, 1000 / 60);
+
+
+</script>
+
+</html>
