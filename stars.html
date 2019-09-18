@@ -27,6 +27,7 @@
         i: 0,
         da: 0.02,
     };
+    var alpha = 1.0;
 
     function initStar(i, c) {
         var angle = 2 * Math.PI * Math.random();
@@ -42,7 +43,9 @@
     }
 
     function loop() {
-        dc.clearRect(0, 0, width, height);
+        dc.fillStyle = "rgba(0, 0, 0, " + alpha + ")";
+        dc.fillRect(0, 0, width, height);
+//        dc.clearRect(0, 0, width, height);
 
         switch (statemachine) {
             case 0:
@@ -52,6 +55,7 @@
                 }
                 pos.i = -470;
                 pos.xoff = width * 0.8 * Math.random();
+                alpha = 1.0;
                 statemachine = 1;
                 break;
             case 1:
@@ -79,6 +83,7 @@
                     initStar(i, false);
                     star[i].dcount = 0.1 + 0.2 * Math.random();
                 }
+                alpha =  0.05;
                 statemachine = 3;
                 break;
             case 3:
@@ -105,7 +110,7 @@
             default:
         }
 
-        dc.fillStyle = "#FFFFFF"; //gc.setFill(Color.WHITE); 
+        dc.fillStyle = "#FFFF00"; //gc.setFill(Color.WHITE); 
         for (var i = 0; i < star.length; i++) {
             if (!star[i].dead) {
                 dc.fillRect(star[i].x, star[i].y, star[i].count / 2, star[i].count / 2);

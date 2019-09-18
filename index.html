@@ -478,6 +478,11 @@
 
     }
 
+    function animateCalendar() {
+        dc.clearRect(0, 0, width, height);
+        window.location.href = "http://handmixer.dk/index.php";
+
+    }
 
     function animateloop() {
         dc.clearRect(0, 0, width, height);
@@ -501,7 +506,7 @@
                 animateText();
                 break;
             case 6: // Calendar
-                window.location = "index.php"
+                animateCalendar();
                 break;
         }
 
@@ -583,7 +588,7 @@
             }
             mdc.fillStyle = "white";
             mdc.font = "14px arial";
-            mdc.fillText("Last update: September 16. 2019 / Handmixer", 10, 17);
+            mdc.fillText("Last update: September 17. 2019 / Handmixer", 10, 17);
 
             mdc.save();
             mdc.translate(75, 90);
@@ -713,6 +718,15 @@
             mdc.fillText("Textfun", 0, 0);
             mdc.restore();
 
+            mdc.save();
+            mdc.translate(670.0, 80.0);
+            //            mdc.rotate(Math.PI);
+            //            mdc.scale(2.0, 2.0);
+            mdc.fillStyle = "#FFFF00";
+            mdc.strokeStyle = "#FFFFFF";
+            mdc.font = "18px arial"
+            mdc.fillText("Calendar", 0, 0);
+            mdc.restore();
         }
     }
 
